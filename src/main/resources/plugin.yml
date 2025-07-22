@@ -1,15 +1,9 @@
-name: FreeMinecraftModels
-version: '2.3.1'
-main: com.magmaguy.freeminecraftmodels.FreeMinecraftModels
-api-version: 1.18
-prefix: FreeMinecraftModels
-load: STARTUP
-authors: [ MagmaGuy ]
-description: Welcome to the new age of custom Minecraft models.
-website: magmaguy.com
-
+name: Daedalus
+version: 1.1
+main: de.erethon.daedalus.Daedalus
+api-version: '1.21.7'
 commands:
-  freeminecraftmodels:
-    aliases:
-      - fmm
-    description: "Main command"
+    daedalus:
+        description: Daedalus plugin command
+        usage: /daedalus spawn <model> <amount>
+        permission: daedalus.command
