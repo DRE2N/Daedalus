@@ -84,10 +84,16 @@ public final class Daedalus extends EPlugin implements Listener, CommandExecutor
                     spawnLocation.setZ(spawnLocation.getZ() + rand.nextDouble(-i, i + 1));
                 }
                 String modelId = args.length > 1 ? args[1] : "default_model";
+                try {
                 ModeledEntity modeledEntity = new ModeledEntity(modelId, spawnLocation);
-                modeledEntity.spawn();
-                if (modelId.contains("catapult")) {
-                    modeledEntity.playAnimation("action_catapult", false, true);
+                    modeledEntity.spawn();
+                    if (modelId.contains("catapult")) {
+                        modeledEntity.playAnimation("action_catapult", false, true);
+                    }
+                } catch (Exception e) {
+                    MessageUtil.sendMessage(player, "Error spawning model: " + e.getMessage());
+                    e.printStackTrace();
+                    return true;
                 }
             }
             MessageUtil.sendMessage(player, "You have spawned a new model.");
@@ -101,6 +107,21 @@ public final class Daedalus extends EPlugin implements Listener, CommandExecutor
             MessageUtil.sendMessage(player, "Tick threads: " + ModeledEntitiesClock.THREAD_COUNT);
             MessageUtil.sendMessage(player, "Pending models: " + ModeledEntitiesClock.ticker.getPendingCount());
             MessageUtil.sendMessage(player, "Average models per thread: " + ModeledEntitiesClock.ticker.getAveragePartitionSize());
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("list")) {
+            MessageUtil.sendMessage(player, "Daedalus loaded models:");
+            if (FileModelConverter.getConvertedFileModels().isEmpty()) {
+                MessageUtil.sendMessage(player, "No models loaded.");
+            }
+            for (String modelId : FileModelConverter.getConvertedFileModels().keySet()) {
+                FileModelConverter fileModelConverter = FileModelConverter.getConvertedFileModels().get(modelId);
+                if (fileModelConverter != null) {
+                    MessageUtil.sendMessage(player, " - " + modelId + " (" + fileModelConverter.getModelName() + ")");
+                } else {
+                    MessageUtil.sendMessage(player, " - " + modelId + " (unknown file)");
+                }
+            }
             return true;
         }
         if (args[0].equalsIgnoreCase("reload")) {
