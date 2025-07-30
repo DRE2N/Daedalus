@@ -26,9 +26,9 @@ public class PacketBoneEntity extends PacketEntity {
         synchedEntityData.set(DataAccessors.display_transformationInterpolationData, 0);
         synchedEntityData.set(DataAccessors.display_interpolationDelta, 1);
         synchedEntityData.set(DataAccessors.display_posRotInterpolationData, 1);
-        synchedEntityData.set(DataAccessors.display_viewRangeData, 2f); // TODO: Configurable view range
-        synchedEntityData.set(DataAccessors.display_widthData, 3f); // TODO: Configurable width
-        synchedEntityData.set(DataAccessors.display_heightData, 3f); // TODO: Configurable height
+        synchedEntityData.set(DataAccessors.display_viewRangeData, 32f); // TODO: Configurable view range
+        synchedEntityData.set(DataAccessors.display_widthData, 1f); // TODO: Configurable width
+        synchedEntityData.set(DataAccessors.display_heightData, 1f); // TODO: Configurable height
 
         item = new ItemStack(Items.LEATHER_HORSE_ARMOR);
         item.set(DataComponents.ITEM_MODEL, ResourceLocation.parse(modelID));

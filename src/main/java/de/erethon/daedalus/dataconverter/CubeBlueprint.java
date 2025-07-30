@@ -166,41 +166,67 @@ public class CubeBlueprint {
      * - 135° on Y -> 90° (geometry transform) + 45° (native rotation)
      */
     private void transformCubeGeometry(double angle, String axis, double originX, double originY, double originZ) {
-        float fromX = from.x, fromY = from.y, fromZ = from.z;
-        float toX = to.x, toY = to.y, toZ = to.z;
+        if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) {
+            float fromX = from.x, fromY = from.y, fromZ = from.z;
+            float toX = to.x, toY = to.y, toZ = to.z;
 
-        Vector3f newFrom = new Vector3f();
-        Vector3f newTo = new Vector3f();
+            switch (axis.toLowerCase()) {
+                case "x" -> { // Pitch
+                    float newFromY = (float) (originY - (toY - originY));
+                    float newToY = (float) (originY - (fromY - originY));
+                    float newFromZ = (float) (originZ - (toZ - originZ));
+                    float newToZ = (float) (originZ - (fromZ - originZ));
+                    from.set(fromX, newFromY, newFromZ);
+                    to.set(toX, newToY, newToZ);
+                }
+                case "y" -> { // Yaw
+                    float newFromX = (float) (originX - (toX - originX));
+                    float newToX = (float) (originX - (fromX - originX));
+                    float newFromZ = (float) (originZ - (toZ - originZ));
+                    float newToZ = (float) (originZ - (fromZ - originZ));
+                    from.set(newFromX, fromY, newFromZ);
+                    to.set(newToX, toY, newToZ);
+                }
+                case "z" -> { // Roll
+                    float newFromX = (float) (originX - (toX - originX));
+                    float newToX = (float) (originX - (fromX - originX));
+                    float newFromY = (float) (originY - (toY - originY));
+                    float newToY = (float) (originY - (fromY - originY));
+                    from.set(newFromX, newFromY, fromZ);
+                    to.set(newToX, newToY, toZ);
+                }
+            }
+        } else {
+            Vector3f newFrom = new Vector3f();
+            Vector3f newTo = new Vector3f();
 
-        fromX -= originX; fromY -= originY; fromZ -= originZ;
-        toX -= originX; toY -= originY; toZ -= originZ;
+            float fromX = from.x - (float)originX, fromY = from.y - (float)originY, fromZ = from.z - (float)originZ;
+            float toX = to.x - (float)originX, toY = to.y - (float)originY, toZ = to.z - (float)originZ;
 
-        switch (axis.toLowerCase()) {
-            case "x" -> {
-                if (Math.abs(angle - 90) < 0.01) { newFrom.set(fromX, -fromZ, fromY); newTo.set(toX, -toZ, toY); }
-                else if (Math.abs(angle + 90) < 0.01) { newFrom.set(fromX, fromZ, -fromY); newTo.set(toX, toZ, -toY); }
-                else if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) { newFrom.set(fromX, -fromY, -fromZ); newTo.set(toX, -toY, -toZ); }
+            switch (axis.toLowerCase()) {
+                case "x" -> {
+                    if (Math.abs(angle - 90) < 0.01)      { newFrom.set(fromX, -toZ, fromY); newTo.set(toX, -fromZ, toY); }
+                    else if (Math.abs(angle + 90) < 0.01) { newFrom.set(fromX, toZ, -toY); newTo.set(toX, fromZ, -fromY); }
+                }
+                case "y" -> {
+                    if (Math.abs(angle - 90) < 0.01)      { newFrom.set(toZ, fromY, -toX); newTo.set(fromZ, toY, -fromX); }
+                    else if (Math.abs(angle + 90) < 0.01) { newFrom.set(-toZ, fromY, toX); newTo.set(-fromZ, toY, fromX); }
+                }
+                case "z" -> {
+                    if (Math.abs(angle - 90) < 0.01)      { newFrom.set(-toY, fromX, fromZ); newTo.set(-fromY, toX, toZ); }
+                    else if (Math.abs(angle + 90) < 0.01) { newFrom.set(toY, -toX, fromZ); newTo.set(fromY, -fromX, toZ); }
+                }
             }
-            case "y" -> {
-                if (Math.abs(angle - 90) < 0.01) { newFrom.set(fromZ, fromY, -fromX); newTo.set(toZ, toY, -toX); }
-                else if (Math.abs(angle + 90) < 0.01) { newFrom.set(-fromZ, fromY, fromX); newTo.set(-toZ, toY, toX); }
-                else if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) { newFrom.set(-fromX, fromY, -fromZ); newTo.set(-toX, toY, -toZ); }
-            }
-            case "z" -> {
-                if (Math.abs(angle - 90) < 0.01) { newFrom.set(-fromY, fromX, fromZ); newTo.set(-toY, toX, toZ); }
-                else if (Math.abs(angle + 90) < 0.01) { newFrom.set(fromY, -fromX, fromZ); newTo.set(toY, -toX, toZ); }
-                else if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) { newFrom.set(-fromX, -fromY, fromZ); newTo.set(-toX, -toY, toZ); }
-            }
+
+            newFrom.add((float)originX, (float)originY, (float)originZ);
+            newTo.add((float)originX, (float)originY, (float)originZ);
+
+            from.set(Math.min(newFrom.x, newTo.x), Math.min(newFrom.y, newTo.y), Math.min(newFrom.z, newTo.z));
+            to.set(Math.max(newFrom.x, newTo.x), Math.max(newFrom.y, newTo.y), Math.max(newFrom.z, newTo.z));
         }
 
-        newFrom.add((float)originX, (float)originY, (float)originZ);
-        newTo.add((float)originX, (float)originY, (float)originZ);
-
-        from.set(Math.min(newFrom.x, newTo.x), Math.min(newFrom.y, newTo.y), Math.min(newFrom.z, newTo.z));
-        to.set(Math.max(newFrom.x, newTo.x), Math.max(newFrom.y, newTo.y), Math.max(newFrom.z, newTo.z));
-
-        cubeJSON.put("from", List.of(from.get(0), from.get(1), from.get(2)));
-        cubeJSON.put("to", List.of(to.get(0), to.get(1), to.get(2)));
+        cubeJSON.put("from", List.of(from.x(), from.y(), from.z()));
+        cubeJSON.put("to", List.of(to.x(), to.y(), to.z()));
 
         remapFaces(angle, axis);
     }
@@ -216,44 +242,109 @@ public class CubeBlueprint {
             }
         }
 
-        // Remapping which face is which (e.g. north becomes east)
+        faces.clear();
+
         switch (axis.toLowerCase()) {
-            case "x":
+            case "x" -> { // Pitch
                 if (Math.abs(angle - 90) < 0.01) {
-                    faces.put("up", originalFaces.get("north")); faces.put("south", originalFaces.get("up")); faces.put("down", originalFaces.get("south")); faces.put("north", originalFaces.get("down"));
-                    rotateFaceUV(faces, "east", 90); rotateFaceUV(faces, "west", -90);
+                    faces.put("up", originalFaces.get("north"));
+                    faces.put("south", originalFaces.get("up"));
+                    faces.put("down", originalFaces.get("south"));
+                    faces.put("north", originalFaces.get("down"));
+                    faces.put("east", originalFaces.get("east"));
+                    faces.put("west", originalFaces.get("west"));
+                    rotateFaceUV(faces, "east", -90);
+                    rotateFaceUV(faces, "west", 90);
                 } else if (Math.abs(angle + 90) < 0.01) {
-                    faces.put("down", originalFaces.get("north")); faces.put("north", originalFaces.get("up")); faces.put("up", originalFaces.get("south")); faces.put("south", originalFaces.get("down"));
-                    rotateFaceUV(faces, "east", -90); rotateFaceUV(faces, "west", 90);
+                    faces.put("down", originalFaces.get("north"));
+                    faces.put("north", originalFaces.get("up"));
+                    faces.put("up", originalFaces.get("south"));
+                    faces.put("south", originalFaces.get("down"));
+                    faces.put("east", originalFaces.get("east"));
+                    faces.put("west", originalFaces.get("west"));
+                    rotateFaceUV(faces, "east", 90);
+                    rotateFaceUV(faces, "west", -90);
                 } else if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) {
-                    faces.put("south", originalFaces.get("north")); faces.put("north", originalFaces.get("south")); faces.put("down", originalFaces.get("up")); faces.put("up", originalFaces.get("down"));
-                    rotateFaceUV(faces, "east", 180); rotateFaceUV(faces, "west", 180);
+                    // Correctly remap faces for a 180-degree pitch
+                    faces.put("down", originalFaces.get("north"));
+                    faces.put("up", originalFaces.get("south"));
+                    faces.put("north", originalFaces.get("down"));
+                    faces.put("south", originalFaces.get("up"));
+                    faces.put("east", originalFaces.get("east"));
+                    faces.put("west", originalFaces.get("west"));
+
+                    // The original up/down faces are now south/north. Their inherent UV is likely correct.
+                    // East and west, however, are now upside-down and need to be spun.
+                    rotateFaceUV(faces, "east", 180);
+                    rotateFaceUV(faces, "west", 180);
                 }
-                break;
-            case "y":
+            }
+            case "y" -> { // Yaw
                 if (Math.abs(angle - 90) < 0.01) {
-                    faces.put("east", originalFaces.get("north")); faces.put("south", originalFaces.get("east")); faces.put("west", originalFaces.get("south")); faces.put("north", originalFaces.get("west"));
-                    rotateFaceUV(faces, "up", 90); rotateFaceUV(faces, "down", -90);
+                    faces.put("east", originalFaces.get("north"));
+                    faces.put("south", originalFaces.get("east"));
+                    faces.put("west", originalFaces.get("south"));
+                    faces.put("north", originalFaces.get("west"));
+                    faces.put("up", originalFaces.get("up"));
+                    faces.put("down", originalFaces.get("down"));
+                    rotateFaceUV(faces, "up", 90);
+                    rotateFaceUV(faces, "down", -90);
                 } else if (Math.abs(angle + 90) < 0.01) {
-                    faces.put("west", originalFaces.get("north")); faces.put("north", originalFaces.get("east")); faces.put("east", originalFaces.get("south")); faces.put("south", originalFaces.get("west"));
-                    rotateFaceUV(faces, "up", -90); rotateFaceUV(faces, "down", 90);
+                    faces.put("west", originalFaces.get("north"));
+                    faces.put("north", originalFaces.get("east"));
+                    faces.put("east", originalFaces.get("south"));
+                    faces.put("south", originalFaces.get("west"));
+                    faces.put("up", originalFaces.get("up"));
+                    faces.put("down", originalFaces.get("down"));
+                    rotateFaceUV(faces, "up", -90);
+                    rotateFaceUV(faces, "down", 90);
                 } else if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) {
-                    faces.put("south", originalFaces.get("north")); faces.put("north", originalFaces.get("south")); faces.put("west", originalFaces.get("east")); faces.put("east", originalFaces.get("west"));
-                    rotateFaceUV(faces, "up", 180); rotateFaceUV(faces, "down", 180);
+                    faces.put("south", originalFaces.get("north"));
+                    faces.put("north", originalFaces.get("south"));
+                    faces.put("west", originalFaces.get("east"));
+                    faces.put("east", originalFaces.get("west"));
+                    faces.put("up", originalFaces.get("up"));
+                    faces.put("down", originalFaces.get("down"));
+                    // In a 180 yaw, up/down are still up/down but need their UVs rotated.
+                    rotateFaceUV(faces, "up", 180);
+                    rotateFaceUV(faces, "down", 180);
                 }
-                break;
-            case "z":
+            }
+            case "z" -> { // Roll
                 if (Math.abs(angle - 90) < 0.01) {
-                    faces.put("east", originalFaces.get("up")); faces.put("down", originalFaces.get("east")); faces.put("west", originalFaces.get("down")); faces.put("up", originalFaces.get("west"));
-                    rotateFaceUV(faces, "north", 90); rotateFaceUV(faces, "south", -90);
+                    faces.put("up", originalFaces.get("west"));
+                    faces.put("east", originalFaces.get("up"));
+                    faces.put("down", originalFaces.get("east"));
+                    faces.put("west", originalFaces.get("down"));
+                    faces.put("north", originalFaces.get("north"));
+                    faces.put("south", originalFaces.get("south"));
+                    rotateFaceUV(faces, "north", 90);
+                    rotateFaceUV(faces, "south", -90);
                 } else if (Math.abs(angle + 90) < 0.01) {
-                    faces.put("west", originalFaces.get("up")); faces.put("up", originalFaces.get("east")); faces.put("east", originalFaces.get("down")); faces.put("down", originalFaces.get("west"));
-                    rotateFaceUV(faces, "north", -90); rotateFaceUV(faces, "south", 90);
+                    faces.put("up", originalFaces.get("east"));
+                    faces.put("west", originalFaces.get("up"));
+                    faces.put("down", originalFaces.get("west"));
+                    faces.put("east", originalFaces.get("down"));
+                    faces.put("north", originalFaces.get("north"));
+                    faces.put("south", originalFaces.get("south"));
+                    rotateFaceUV(faces, "north", -90);
+                    rotateFaceUV(faces, "south", 90);
                 } else if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) {
-                    faces.put("down", originalFaces.get("up")); faces.put("up", originalFaces.get("down")); faces.put("west", originalFaces.get("east")); faces.put("east", originalFaces.get("west"));
-                    rotateFaceUV(faces, "north", 180); rotateFaceUV(faces, "south", 180);
+                    faces.put("down", originalFaces.get("up"));
+                    faces.put("up", originalFaces.get("down"));
+                    faces.put("west", originalFaces.get("east"));
+                    faces.put("east", originalFaces.get("west"));
+                    faces.put("north", originalFaces.get("north"));
+                    faces.put("south", originalFaces.get("south"));
+
                 }
-                break;
+            }
+        }
+
+        for(String faceName : new String[]{"north", "east", "south", "west", "up", "down"}){
+            if(!faces.containsKey(faceName) && originalFaces.containsKey(faceName)){
+                faces.put(faceName, originalFaces.get(faceName));
+            }
         }
     }
 

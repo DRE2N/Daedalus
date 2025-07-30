@@ -84,9 +84,12 @@ public final class Daedalus extends EPlugin implements Listener, CommandExecutor
                     spawnLocation.setZ(spawnLocation.getZ() + rand.nextDouble(-i, i + 1));
                 }
                 String modelId = args.length > 1 ? args[1] : "default_model";
+                String scaleInput = args.length > 3 ? args[3] : "1.0";
+                double scale = Double.parseDouble(scaleInput);
                 try {
                 ModeledEntity modeledEntity = new ModeledEntity(modelId, spawnLocation);
                     modeledEntity.spawn();
+                    modeledEntity.setScaleModifier(scale);
                     if (modelId.contains("catapult")) {
                         modeledEntity.playAnimation("action_catapult", false, true);
                     }

@@ -28,7 +28,6 @@ public class OutputFolder {
         generateDirectory(baseDirectory + File.separatorChar + "Daedalus" + File.separatorChar + "assets" + File.separatorChar + "erethon" + File.separatorChar + "models");
         generateDirectory(baseDirectory + File.separatorChar + "Daedalus" + File.separatorChar + "assets" + File.separatorChar + "minecraft" + File.separatorChar + "atlases");
         generateFileFromResources("pack.mcmeta", baseDirectory + File.separatorChar + "Daedalus" + File.separatorChar + "pack.mcmeta");
-        generateFileFromResources("pack.png", baseDirectory + File.separatorChar + "Daedalus" + File.separatorChar + "pack.png");
         generateFileFromResources("blocks.json", baseDirectory + File.separatorChar + "Daedalus" + File.separatorChar + "assets" + File.separatorChar + "minecraft" + File.separatorChar + "atlases" + File.separatorChar + "blocks.json");
     }
 
