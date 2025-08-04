@@ -1,9 +1,9 @@
 package de.erethon.daedalus.customentity;
 
+import de.erethon.daedalus.Daedalus;
 import de.erethon.daedalus.MetadataHandler;
 import de.erethon.daedalus.config.props.PropBlocks;
 import de.erethon.daedalus.customentity.core.components.PropBlockComponent;
-import de.erethon.bedrock.chat.MessageUtil;
 import org.bukkit.*;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
@@ -76,11 +76,11 @@ public class PropEntity extends StaticEntity {
     }
 
     public static PropEntity respawnPropEntityFromArmorStand(String entityID, ArmorStand armorStand) {
-        MessageUtil.log("checking if prop entity " + entityID + " already exists at " + armorStand.getLocation() + "...");
+        Daedalus.log("checking if prop entity " + entityID + " already exists at " + armorStand.getLocation() + "...");
         if (propEntities.containsKey(armorStand.getUniqueId())) {
             return propEntities.get(armorStand.getUniqueId());
         }
-        MessageUtil.log("prop entity " + entityID + " does not exist at " + armorStand.getLocation() + ", creating new prop entity...");
+        Daedalus.log("prop entity " + entityID + " does not exist at " + armorStand.getLocation() + ", creating new prop entity...");
         PropEntity propEntity = new PropEntity(entityID, armorStand);
         return propEntity;
     }

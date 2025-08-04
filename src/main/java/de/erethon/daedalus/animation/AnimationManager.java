@@ -1,6 +1,6 @@
 package de.erethon.daedalus.animation;
 
-import de.erethon.bedrock.chat.MessageUtil;
+import de.erethon.daedalus.Daedalus;
 import de.erethon.daedalus.customentity.ModeledEntity;
 import de.erethon.daedalus.dataconverter.AnimationFrame;
 import de.erethon.daedalus.dataconverter.AnimationsBlueprint;
@@ -45,7 +45,7 @@ public class AnimationManager {
         if (current == null) {
             current = target;
             current.enter();
-            MessageUtil.log("Entering new animation state: " + current.getClass().getSimpleName());
+            Daedalus.log("Entering new animation state: " + current.getClass().getSimpleName());
             return;
         }
         current.exit();
@@ -54,7 +54,7 @@ public class AnimationManager {
         }
         current = target;
         current.enter();
-        MessageUtil.log("Transitioning to " + current.getClass().getSimpleName());
+        Daedalus.log("Transitioning to " + current.getClass().getSimpleName());
     }
 
     /**
@@ -84,7 +84,7 @@ public class AnimationManager {
         // 2) fallback to custom
         Animation anim = animations.getAnimations().get(name);
         if (anim == null) {
-            MessageUtil.log("Failed to play animation: " + name + " - animation not found.");
+            Daedalus.log("Failed to play animation: " + name + " - animation not found.");
             return false;
         }
 
@@ -97,7 +97,7 @@ public class AnimationManager {
 
         if (blendAnimation) nextQueued = custom;
         else transitionTo(custom);
-        MessageUtil.log("Playing animation: " + name);
+        Daedalus.log("Playing animation: " + name);
         return true;
     }
 

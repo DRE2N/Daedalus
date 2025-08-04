@@ -1,6 +1,6 @@
 package de.erethon.daedalus.animation;
 
-import de.erethon.bedrock.chat.MessageUtil;
+import de.erethon.daedalus.Daedalus;
 import de.erethon.daedalus.customentity.ModeledEntity;
 import de.erethon.daedalus.customentity.core.Bone;
 import de.erethon.daedalus.dataconverter.AnimationBlueprint;
@@ -31,7 +31,7 @@ public class Animation {
                 animationFrames.put(bone, null);
             }
         });
-        MessageUtil.log("Loaded animation: " + animationBlueprint.getAnimationName() + " with " + animationFrames.size() + " frames.");
+        Daedalus.log("Loaded animation: " + animationBlueprint.getAnimationName() + " with " + animationFrames.size() + " frames.");
     }
 
     public void resetCounter() {

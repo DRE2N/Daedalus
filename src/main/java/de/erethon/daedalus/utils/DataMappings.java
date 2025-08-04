@@ -1,7 +1,7 @@
 package de.erethon.daedalus.utils;
 
 import com.mojang.authlib.GameProfile;
-import de.erethon.bedrock.chat.MessageUtil;
+import de.erethon.daedalus.Daedalus;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -54,13 +54,13 @@ public class DataMappings {
                     EntityDataAccessor<?> accessor = (EntityDataAccessor<?>) declaredField.get(entity);
                     dataAccessors.put(declaredField.getName(), accessor);
                     if (accessor != null) {
-                        MessageUtil.log("[Models] Found data accessor " + declaredField.getName() + " for " + type.getDescriptionId());
+                        Daedalus.log("[DataMappings] Found data accessor " + declaredField.getName() + " for " + type.getDescriptionId());
                     } else {
-                        MessageUtil.log("[Models] Found null data accessor " + declaredField.getName() + " for " + type.getDescriptionId());
+                        Daedalus.log("[DataMappings] Found null data accessor " + declaredField.getName() + " for " + type.getDescriptionId());
                     }
                 }
                 catch (IllegalAccessException e) {
-                    MessageUtil.log("[Models] Failed to access data accessor field " + declaredField.getName() + " for entity " + type.getDescriptionId());
+                    Daedalus.log("[DataMappings] Failed to access data accessor field " + declaredField.getName() + " for entity " + type.getDescriptionId());
                     e.printStackTrace();
                 }
             }
@@ -84,17 +84,17 @@ public class DataMappings {
                     EntityDataAccessor<?> accessor = (EntityDataAccessor<?>) declaredField.get(player);
                     dataAccessors.put(declaredField.getName(), accessor);
                     if (accessor != null) {
-                        MessageUtil.log("[Models] Found data accessor " + declaredField.getName() + " for  Player");
+                        Daedalus.log("[DataMappings] Found data accessor " + declaredField.getName() + " for  Player");
                     } else {
-                        MessageUtil.log("[Models] Found null data accessor " + declaredField.getName() + " for Player");
+                        Daedalus.log("[DataMappings] Found null data accessor " + declaredField.getName() + " for Player");
                     }
                 } catch (IllegalAccessException e) {
-                    MessageUtil.log("[Models] Failed to access data accessor field " + declaredField.getName() + " for entity Player");
+                    Daedalus.log("[DataMappings] Failed to access data accessor field " + declaredField.getName() + " for entity Player");
                     e.printStackTrace();
                 }
             }
             DATA_ACCESSOR_MAPPINGS.put(player.getClass(), dataAccessors);
-            MessageUtil.log("[Models] Found data accessor for Player base: " + dataAccessors.size());
+            Daedalus.log("[Models] Found data accessor for Player base: " + dataAccessors.size());
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -110,13 +110,13 @@ public class DataMappings {
                 EntityDataAccessor<?> accessor = (EntityDataAccessor<?>) declaredField.get(Entity.class);
                 entityDataAccessors.put(declaredField.getName(), accessor);
                 if (accessor != null) {
-                    MessageUtil.log("[Models] Found data accessor " + declaredField.getName() + " for Entity base");
+                    Daedalus.log("[DataMappings] Found data accessor " + declaredField.getName() + " for Entity base");
                 } else {
-                    MessageUtil.log("[Models] Found null data accessor " + declaredField.getName() + " for Entity base");
+                    Daedalus.log("[DataMappings] Found null data accessor " + declaredField.getName() + " for Entity base");
                 }
             }
             catch (IllegalAccessException e) {
-                MessageUtil.log("[Models] Failed to access data accessor field " + declaredField.getName() + " for Entity base");
+                Daedalus.log("[DataMappings] Failed to access data accessor field " + declaredField.getName() + " for Entity base");
                 e.printStackTrace();
             }
         }
@@ -132,13 +132,13 @@ public class DataMappings {
                 EntityDataAccessor<?> accessor = (EntityDataAccessor<?>) declaredField.get(LivingEntity.class);
                 livingDataAccessors.put(declaredField.getName(), accessor);
                 if (accessor != null) {
-                    MessageUtil.log("[Models] Found data accessor " + declaredField.getName() + " for LivingEntity base");
+                    Daedalus.log("[DataMappings] Found data accessor " + declaredField.getName() + " for LivingEntity base");
                 } else {
-                    MessageUtil.log("[Models] Found null data accessor " + declaredField.getName() + " for LivingEntity base");
+                    Daedalus.log("[DataMappings] Found null data accessor " + declaredField.getName() + " for LivingEntity base");
                 }
             }
             catch (IllegalAccessException e) {
-                MessageUtil.log("[Models] Failed to access data accessor field " + declaredField.getName() + " for LivingEntity base");
+                Daedalus.log("[DataMappings] Failed to access data accessor field " + declaredField.getName() + " for LivingEntity base");
                 e.printStackTrace();
             }
         }
@@ -154,13 +154,13 @@ public class DataMappings {
                 EntityDataAccessor<?> accessor = (EntityDataAccessor<?>) declaredField.get(Display.class);
                 displayDataAccessors.put(declaredField.getName(), accessor);
                 if (accessor != null) {
-                    MessageUtil.log("[Models] Found data accessor " + declaredField.getName() + " for Display base");
+                    Daedalus.log("[DataMappings] Found data accessor " + declaredField.getName() + " for Display base");
                 } else {
-                    MessageUtil.log("[Models] Found null data accessor " + declaredField.getName() + " for Display base");
+                    Daedalus.log("[DataMappings] Found null data accessor " + declaredField.getName() + " for Display base");
                 }
             }
             catch (IllegalAccessException e) {
-                MessageUtil.log("[Models] Failed to access data accessor field " + declaredField.getName() + " for Display base");
+                Daedalus.log("[DataMappings] Failed to access data accessor field " + declaredField.getName() + " for Display base");
                 e.printStackTrace();
             }
         }
@@ -177,7 +177,7 @@ public class DataMappings {
 
     public static SynchedEntityData getSynchedEntityData(EntityType<?> type) {
         if (!ENTITY_DATA_MAPPINGS.containsKey(type)) {
-            MessageUtil.log("[Models] No entity found for type " + type.getDescriptionId());
+            Daedalus.log("[DataMappings] No entity found for type " + type.getDescriptionId());
             return null;
         }
         Entity entity = ENTITY_DATA_MAPPINGS.get(type);
@@ -193,7 +193,7 @@ public class DataMappings {
                 defineSynchedData.invoke(entity, dataBuilder);
             }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            MessageUtil.log("Failed to define synched data for " + type.getDescriptionId() + ": " + e.getMessage());
+            Daedalus.log("Failed to define synched data for " + type.getDescriptionId() + ": " + e.getMessage());
         }
         // Shared data
         dataBuilder.define(getAccessor(Entity.class, "DATA_SHARED_FLAGS_ID"), (byte) 0);
@@ -210,14 +210,14 @@ public class DataMappings {
 
     public static EntityDataAccessor getAccessor(Class<? extends Entity> clazz, String dataAccessor) {
         if (!DATA_ACCESSOR_MAPPINGS.containsKey(clazz)) {
-            MessageUtil.log("[Models] No data accessors found for class " + clazz.getName());
+            Daedalus.log("[DataMappings] No data accessors found for class " + clazz.getName());
             return null;
         }
         if (!DATA_ACCESSOR_MAPPINGS.get(clazz).containsKey(dataAccessor)) {
-            MessageUtil.log("[Models] No data accessor found for " + dataAccessor + " in class " + clazz.getName());
+            Daedalus.log("[DataMappings] No data accessor found for " + dataAccessor + " in class " + clazz.getName());
             // Print all we have for now
-            MessageUtil.log("[Models] Data accessors for " + clazz.getName() + ":");
-            DATA_ACCESSOR_MAPPINGS.get(clazz).forEach((key, value) ->MessageUtil.log("- " + key));
+            Daedalus.log("[DataMappings] Data accessors for " + clazz.getName() + ":");
+            DATA_ACCESSOR_MAPPINGS.get(clazz).forEach((key, value) -> Daedalus.log("- " + key));
             return null;
         }
         return DATA_ACCESSOR_MAPPINGS.get(clazz).get(dataAccessor);

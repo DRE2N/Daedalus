@@ -1,7 +1,7 @@
 package de.erethon.daedalus.dataconverter;
 
+import de.erethon.daedalus.Daedalus;
 import de.erethon.daedalus.utils.MathToolkit;
-import de.erethon.bedrock.chat.MessageUtil;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -21,16 +21,16 @@ public class HitboxBlueprint {
         this.modelName = modelName;
         ArrayList<?> childrenValues = (ArrayList<?>) boneJSON.get("children");
         if (childrenValues.size() > 1) {
-            MessageUtil.log("Model " + modelName + " has more than one value defining a hitbox! Only the first cube will be used to define the hitbox.");
+            Daedalus.log("Model " + modelName + " has more than one value defining a hitbox! Only the first cube will be used to define the hitbox.");
         }
         if (childrenValues.isEmpty()) {
-            MessageUtil.log("Model " + modelName + " has a hitbox bone but no hitbox cube! This means the hitbox won't be able to generate correctly!");
+            Daedalus.log("Model " + modelName + " has a hitbox bone but no hitbox cube! This means the hitbox won't be able to generate correctly!");
             return;
         }
         if (childrenValues.get(0) instanceof String) {
             parseCube((Map<String, Object>) values.get(childrenValues.get(0)));
         } else {
-            MessageUtil.log("Model " + modelName + " has an invalid hitbox! The hitbox bone should only have one cube in it defining its boundaries.");
+            Daedalus.log("Model " + modelName + " has an invalid hitbox! The hitbox bone should only have one cube in it defining its boundaries.");
         }
 
     }

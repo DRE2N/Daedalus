@@ -1,8 +1,8 @@
 package de.erethon.daedalus.config;
 
+import de.erethon.daedalus.Daedalus;
 import de.erethon.daedalus.MetadataHandler;
 import de.erethon.daedalus.utils.ZipFile;
-import de.erethon.bedrock.chat.MessageUtil;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -21,7 +21,7 @@ public class OutputFolder {
         try {
             if (mainFolder.exists()) FileUtils.deleteDirectory(mainFolder);
         } catch (Exception e) {
-            MessageUtil.log("Failed to delete folder " + mainFolder.getAbsolutePath());
+            Daedalus.log("Failed to delete folder " + mainFolder.getAbsolutePath());
         }
         mainFolder.mkdir();
         generateDirectory(baseDirectory + File.separatorChar + "Daedalus" + File.separatorChar + "assets" + File.separatorChar + "erethon" + File.separatorChar + "textures");
@@ -46,7 +46,7 @@ public class OutputFolder {
             // Copy the InputStream to the file
             Files.copy(inputStream, newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
-            MessageUtil.log("Failed to generate default resource pack elements");
+            Daedalus.log("Failed to generate default resource pack elements");
             e.printStackTrace();
         }
     }

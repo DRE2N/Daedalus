@@ -1,9 +1,9 @@
 package de.erethon.daedalus.customentity.core;
 
+import de.erethon.daedalus.Daedalus;
 import de.erethon.daedalus.config.DefaultConfig;
 import de.erethon.daedalus.dataconverter.BoneBlueprint;
 import de.erethon.daedalus.thirdparty.BedrockChecker;
-import de.erethon.bedrock.chat.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -90,7 +90,7 @@ public class Bone {
         if (boneBlueprint.isNameTag()) {
             if (boneTransforms.getPacketTextDisplayEntity() == null) {
                 if (!warned) {
-                    MessageUtil.log("nametag bone did not spawn name tag");
+                    Daedalus.log("nametag bone did not spawn name tag");
                     warned = true;
                 }
                 return;

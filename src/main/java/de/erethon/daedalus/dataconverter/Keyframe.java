@@ -1,8 +1,8 @@
 package de.erethon.daedalus.dataconverter;
 
+import de.erethon.daedalus.Daedalus;
 import de.erethon.daedalus.utils.InterpolationType;
 import de.erethon.daedalus.utils.TransformationType;
-import de.erethon.bedrock.chat.MessageUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -34,7 +34,7 @@ public class Keyframe {
         try {
             return (float) Double.parseDouble(rawValue);
         } catch (Exception e) {
-            MessageUtil.log("Failed to parse supposed number value " + rawValue + " in animation " + animationName + " for model " + modelName + "!");
+            Daedalus.log("Failed to parse supposed number value " + rawValue + " in animation " + animationName + " for model " + modelName + "!");
             return 0;
         }
     }

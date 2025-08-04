@@ -1,6 +1,6 @@
 package de.erethon.daedalus.utils;
 
-import de.erethon.bedrock.chat.MessageUtil;
+import de.erethon.daedalus.Daedalus;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -78,9 +78,9 @@ public class ConfigurationLocation {
         } catch (Exception ex) {
             if (locationString.equals("null"))
                 return null;
-            MessageUtil.log("Attempted to deserialize an invalid location!");
-            MessageUtil.log("Expected location format: worldname,x,y,z,pitch,yaw");
-            MessageUtil.log("Actual location format: " + locationString);
+            Daedalus.log("Attempted to deserialize an invalid location!");
+            Daedalus.log("Expected location format: worldname,x,y,z,pitch,yaw");
+            Daedalus.log("Actual location format: " + locationString);
             return null;
         }
         return new Location(world, x, y, z, yaw, pitch);

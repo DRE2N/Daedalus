@@ -1,11 +1,10 @@
 package de.erethon.daedalus.customentity.core.components;
 
+import de.erethon.daedalus.Daedalus;
 import de.erethon.daedalus.animation.AnimationManager;
 import de.erethon.daedalus.customentity.ModeledEntity;
 import de.erethon.daedalus.dataconverter.FileModelConverter;
 import de.erethon.daedalus.utils.MathToolkit;
-import de.erethon.bedrock.chat.MessageUtil;
-
 /**
  * The AnimationComponent class provides functionalities to manage and animate
  * a ModeledEntity instance. It enables playing, stopping, and blending animations
@@ -93,12 +92,12 @@ public class AnimationComponent {
         if (fileModelConverter.getAnimationsBlueprint() != null) {
             try {
                 animationManager = new AnimationManager(modeledEntity, fileModelConverter.getAnimationsBlueprint());
-                MessageUtil.log("Initialized AnimationManager for entityID: " + modeledEntity.getEntityID() + " with " + fileModelConverter.getAnimationsBlueprint().getAnimations().size() + " animations.");
+                Daedalus.log("Initialized AnimationManager for entityID: " + modeledEntity.getEntityID() + " with " + fileModelConverter.getAnimationsBlueprint().getAnimations().size() + " animations.");
             } catch (Exception e) {
-                MessageUtil.log("Failed to initialize AnimationManager for entityID: " + modeledEntity.getEntityID() + ". Error: " + e.getMessage());
+                Daedalus.log("Failed to initialize AnimationManager for entityID: " + modeledEntity.getEntityID() + ". Error: " + e.getMessage());
             }
         } else {
-            MessageUtil.log("No AnimationsBlueprint found for entityID: " + modeledEntity.getEntityID() + ". AnimationManager not initialized.");
+            Daedalus.log("No AnimationsBlueprint found for entityID: " + modeledEntity.getEntityID() + ". AnimationManager not initialized.");
         }
     }
 

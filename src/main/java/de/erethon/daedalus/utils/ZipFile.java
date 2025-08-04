@@ -1,6 +1,6 @@
 package de.erethon.daedalus.utils;
 
-import de.erethon.bedrock.chat.MessageUtil;
+import de.erethon.daedalus.Daedalus;
 
 import java.io.*;
 import java.util.zip.ZipEntry;
@@ -13,7 +13,7 @@ public class ZipFile {
 
     public static boolean zip(File directory, String targetZipPath) {
         if (!directory.exists()) {
-            MessageUtil.log("Failed to zip directory " + directory.getPath() + " because it does not exist!");
+            Daedalus.log("Failed to zip directory " + directory.getPath() + " because it does not exist!");
             return false;
         }
 

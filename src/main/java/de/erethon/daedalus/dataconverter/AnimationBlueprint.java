@@ -1,10 +1,9 @@
 package de.erethon.daedalus.dataconverter;
 
+import de.erethon.daedalus.Daedalus;
 import de.erethon.daedalus.utils.InterpolationType;
 import de.erethon.daedalus.utils.LoopType;
 import de.erethon.daedalus.utils.MathToolkit;
-import de.erethon.bedrock.chat.MessageUtil;
-
 import java.util.*;
 
 public class AnimationBlueprint {
@@ -21,7 +20,7 @@ public class AnimationBlueprint {
         try {
             animationData = (Map<String, Object>) data;
         } catch (Exception e) {
-            MessageUtil.log("Failed to get animation data! Model format is not as expected, this version of BlockBench is not compatible with Daedalus!");
+            Daedalus.log("Failed to get animation data! Model format is not as expected, this version of BlockBench is not compatible with Daedalus!");
             e.printStackTrace();
             return;
         }
@@ -37,7 +36,7 @@ public class AnimationBlueprint {
         try {
             interpolateKeyframes();
         } catch (Exception e) {
-            MessageUtil.log("Failed to interpolate animations for model " + modelName + "! Animation name: " + animationName);
+            Daedalus.log("Failed to interpolate animations for model " + modelName + "! Animation name: " + animationName);
             e.printStackTrace();
         }
     }
@@ -55,7 +54,7 @@ public class AnimationBlueprint {
         //hitboxes do not get animated!
         if (boneName.equalsIgnoreCase("hitbox")) return;
         if (boneBlueprint == null) {
-            MessageUtil.log("Failed to get bone " + boneName + " from model " + modelName + "!");
+            Daedalus.log("Failed to get bone " + boneName + " from model " + modelName + "!");
             return;
         }
         List<Keyframe> keyframes = new ArrayList<>();

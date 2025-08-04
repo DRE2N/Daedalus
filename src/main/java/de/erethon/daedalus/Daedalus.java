@@ -29,6 +29,8 @@ import java.util.Random;
 
 public final class Daedalus extends EPlugin implements Listener, CommandExecutor {
 
+    public static Daedalus plugin;
+
     public Daedalus() {
         settings = EPluginSettings.builder().build();
     }
@@ -36,6 +38,7 @@ public final class Daedalus extends EPlugin implements Listener, CommandExecutor
     @Override
     public void onEnable() {
         super.onEnable();
+        plugin = this;
         MetadataHandler.PLUGIN = this;
         //Initialize plugin configuration files
         OutputFolder.initializeConfig();
@@ -135,6 +138,14 @@ public final class Daedalus extends EPlugin implements Listener, CommandExecutor
             return true;
         }
         return false;
+    }
+
+    public static  Daedalus getPlugin() {
+        return plugin;
+    }
+
+    public static void log(String message) {
+        plugin.getLogger().info(message);
     }
 
 }

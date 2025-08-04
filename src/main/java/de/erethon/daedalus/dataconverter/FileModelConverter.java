@@ -1,9 +1,9 @@
 package de.erethon.daedalus.dataconverter;
 
 import com.google.gson.Gson;
+import de.erethon.daedalus.Daedalus;
 import de.erethon.daedalus.MetadataHandler;
 import de.erethon.daedalus.utils.StringToResourcePackFilename;
-import de.erethon.bedrock.chat.MessageUtil;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
@@ -55,7 +55,7 @@ public class FileModelConverter {
         try {
             reader = Files.newBufferedReader(Paths.get(file.getPath()));
         } catch (Exception ex) {
-            MessageUtil.log("Failed to read file " + file.getAbsolutePath());
+            Daedalus.log("Failed to read file " + file.getAbsolutePath());
             return;
         }
 
@@ -73,7 +73,7 @@ public class FileModelConverter {
         try {
             reader.close();
         } catch (Exception exception) {
-            MessageUtil.log("Failed to close reader for file!");
+            Daedalus.log("Failed to close reader for file!");
             return;
         }
 
@@ -100,7 +100,7 @@ public class FileModelConverter {
                 BufferedImage bufferedImage = ImageIO.read(imageFile);
                 imageSize.put(modelName + "/" + imageName, bufferedImage.getWidth());
             } catch (Exception ex) {
-                MessageUtil.log("Failed to convert image " + imageName + " to its corresponding image file!");
+                Daedalus.log("Failed to convert image " + imageName + " to its corresponding image file!");
             }
         }
 

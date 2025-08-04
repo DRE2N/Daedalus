@@ -1,9 +1,9 @@
 package de.erethon.daedalus.dataconverter;
 
 import com.google.gson.Gson;
+import de.erethon.daedalus.Daedalus;
 import de.erethon.daedalus.MetadataHandler;
 import de.erethon.daedalus.utils.StringToResourcePackFilename;
-import de.erethon.bedrock.chat.MessageUtil;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.NamespacedKey;
 import org.joml.Vector3f;
@@ -154,7 +154,7 @@ public class BoneBlueprint {
         //If the bone exceeds (16+32)*4 in size (remember, this is scaled) then it is too large to be rendered
         //This is because the lowest value is -16, the highest is +32 and the model is scaled up by 4x
         if (xSize > 48 * MODEL_SCALE || ySize > 48 * MODEL_SCALE || zSize > 48 * MODEL_SCALE) {
-            MessageUtil.log("Model " + originalModelName + " has a boneBlueprint or set of cubes which exceeds the maximum size! Either make the cubes smaller, less far apart or split them up into multiple bones!");
+            Daedalus.log("Model " + originalModelName + " has a boneBlueprint or set of cubes which exceeds the maximum size! Either make the cubes smaller, less far apart or split them up into multiple bones!");
         }
 
         //Find new lowest point in the cube, and shift it by the amount of the origin - currently in normal resource pack units
@@ -209,7 +209,7 @@ public class BoneBlueprint {
                 //Case for object being a cube
                 CubeBlueprint cubeBlueprint = new CubeBlueprint(projectResolution, (Map<String, Object>) values.get(object), modelName);
                 if (cubeBlueprint.isValidatedData()) cubeBlueprintChildren.add(cubeBlueprint);
-                else MessageUtil.log("Model " + modelName + " has an invalid configuration for its cubes!");
+                else Daedalus.log("Model " + modelName + " has an invalid configuration for its cubes!");
             } else {
                 //Case for object being a boneBlueprint
                 BoneBlueprint boneBlueprint = new BoneBlueprint(projectResolution, (Map<String, Object>) object, values, textureReferences, modelName, this, skeletonBlueprint);
@@ -287,7 +287,7 @@ public class BoneBlueprint {
         try {
             FileUtils.writeStringToFile(file = new File(modelDirectory + File.separatorChar + filename + ".json"), gson.toJson(boneJSON), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            MessageUtil.log("Failed to write boneBlueprint resource packs for boneBlueprint " + filename + "!");
+            Daedalus.log("Failed to write boneBlueprint resource packs for boneBlueprint " + filename + "!");
             throw new RuntimeException(e);
         }
     }

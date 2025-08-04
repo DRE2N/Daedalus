@@ -1,7 +1,7 @@
 package de.erethon.daedalus.dataconverter;
 
+import de.erethon.daedalus.Daedalus;
 import de.erethon.daedalus.utils.MathToolkit;
-import de.erethon.bedrock.chat.MessageUtil;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public class CubeBlueprint {
 
         ArrayList<Double> fromList = (ArrayList<Double>) cubeJSON.get("from");
         if (fromList == null) {
-            MessageUtil.log("Cube " + cubeJSON.get("name") + " in model " + modelName + " does not have a 'from' property. This cube will not be processed correctly.");
+            Daedalus.log("Cube " + cubeJSON.get("name") + " in model " + modelName + " does not have a 'from' property. This cube will not be processed correctly.");
             return;
         }
         from = new Vector3f(
@@ -49,7 +49,7 @@ public class CubeBlueprint {
                 MathToolkit.roundFourDecimalPlaces(fromList.get(2).floatValue() * BoneBlueprint.ARMOR_STAND_HEAD_SIZE_MULTIPLIER));
         ArrayList<Double> toList = (ArrayList<Double>) cubeJSON.get("to");
         if (toList == null) {
-            MessageUtil.log("Cube " + cubeJSON.get("name") + " in model " + modelName + " does not have a 'to' property. This cube will not be processed correctly.");
+            Daedalus.log("Cube " + cubeJSON.get("name") + " in model " + modelName + " does not have a 'to' property. This cube will not be processed correctly.");
             return;
         }
         to = new Vector3f(
@@ -66,14 +66,14 @@ public class CubeBlueprint {
     private void setTextureData(double projectResolution, Map<String, Object> map, String modelName) {
         if (map == null || map.get("texture") == null) {
             if (textureDataExists != null && textureDataExists) {
-                MessageUtil.log("A cube in the model " + modelName + " has a face which does not have a texture while the rest of the cube has a texture. Minecraft does not allow this. Go through every cube in that model and make sure they all either have or do not have textures on all faces, but don't mix having and not having textures for the same cube. The model will appear with the debug black and purple cube texture until fixed.");
+                Daedalus.log("A cube in the model " + modelName + " has a face which does not have a texture while the rest of the cube has a texture. Minecraft does not allow this. Go through every cube in that model and make sure they all either have or do not have textures on all faces, but don't mix having and not having textures for the same cube. The model will appear with the debug black and purple cube texture until fixed.");
             }
             textureDataExists = false;
-            MessageUtil.log("Cube " + getCubeName() + " in model " + modelName + " does not have a texture for face. This is allowed, but the cube will appear with the debug black and purple cube texture until fixed.");
+            Daedalus.log("Cube " + getCubeName() + " in model " + modelName + " does not have a texture for face. This is allowed, but the cube will appear with the debug black and purple cube texture until fixed.");
             return;
         }
         if (textureDataExists != null && !textureDataExists)
-            MessageUtil.log("A cube in the model " + modelName + " has a face which does not have a texture while the rest of the cube has a texture. Minecraft does not allow this. Go through every cube in that model and make sure they all either have or do not have textures on all faces, but don't mix having and not having textures for the same cube. The model will appear with the debug black and purple cube texture until fixed.");
+            Daedalus.log("A cube in the model " + modelName + " has a face which does not have a texture while the rest of the cube has a texture. Minecraft does not allow this. Go through every cube in that model and make sure they all either have or do not have textures on all faces, but don't mix having and not having textures for the same cube. The model will appear with the debug black and purple cube texture until fixed.");
         textureDataExists = true;
 
         Double textureDouble = (Double) map.get("texture");
@@ -91,7 +91,7 @@ public class CubeBlueprint {
         // 'projectResolution' MUST be the width/height of the texture file (e.g., 64, 128, 256).
         // If the UVs are unexpectedly large or the texture atlas is visible, we are likely passing an incorrect projectResolution (e.g. default 8).
         if (projectResolution <= 0) {
-            MessageUtil.log("Error: Invalid project resolution (" + projectResolution + ") for model " + modelName + ". Defaulting to 16, but UVs will likely be incorrect.");
+            Daedalus.log("Error: Invalid project resolution (" + projectResolution + ") for model " + modelName + ". Defaulting to 16, but UVs will likely be incorrect.");
             projectResolution = 16.0;
         }
         double uvMultiplier = 16.0 / projectResolution;
@@ -112,7 +112,7 @@ public class CubeBlueprint {
 
     public void shiftRotation() {
         if (cubeJSON.get("origin") == null) {
-            MessageUtil.log("Cube " + getCubeName() + " in model " + cubeJSON.get("model") + " does not have an 'origin' property. Cannot shift rotation.");
+            Daedalus.log("Cube " + getCubeName() + " in model " + cubeJSON.get("model") + " does not have an 'origin' property. Cannot shift rotation.");
             return;
         }
         Map<String, Object> newRotationData = new HashMap<>();
@@ -138,7 +138,7 @@ public class CubeBlueprint {
                         case 0 -> axis = "x";
                         case 1 -> axis = "y";
                         case 2 -> axis = "z";
-                        default -> MessageUtil.log("A cube rotation has an unknown axis index: " + i);
+                        default -> Daedalus.log("A cube rotation has an unknown axis index: " + i);
                     }
                 }
             }
@@ -230,7 +230,7 @@ public class CubeBlueprint {
     private void remapFaces(double angle, String axis) {
         Map<String, Object> faces = (Map<String, Object>) cubeJSON.get("faces");
         if (faces == null) {
-            MessageUtil.log("Warning: Cube " + getCubeName() + " has no faces defined. Cannot remap faces for rotation.");
+            Daedalus.log("Warning: Cube " + getCubeName() + " has no faces defined. Cannot remap faces for rotation.");
             return;
         }
 
@@ -287,7 +287,7 @@ public class CubeBlueprint {
     private void rotateFaceUV(Map<String, Object> faces, String faceName, double additionalRotation) {
         Map<String, Object> face = (Map<String, Object>) faces.get(faceName);
         if (face == null) {
-            MessageUtil.log("Warning: Face " + faceName + " does not exist in cube " + getCubeName() + ". Cannot apply UV rotation.");
+            Daedalus.log("Warning: Face " + faceName + " does not exist in cube " + getCubeName() + ". Cannot apply UV rotation.");
             return;
         }
 
@@ -306,7 +306,7 @@ public class CubeBlueprint {
 
         // Minecraft only accepts 0, 90, 180, 270.
         if (newRotation != 0 && newRotation != 90 && newRotation != 180 && newRotation != 270) {
-            MessageUtil.log("Warning: Invalid final UV rotation of " + newRotation + " calculated for face " + faceName);
+            Daedalus.log("Warning: Invalid final UV rotation of " + newRotation + " calculated for face " + faceName);
             return;
         }
 

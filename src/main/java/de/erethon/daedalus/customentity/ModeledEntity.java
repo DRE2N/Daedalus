@@ -1,5 +1,6 @@
 package de.erethon.daedalus.customentity;
 
+import de.erethon.daedalus.Daedalus;
 import de.erethon.daedalus.MetadataHandler;
 import de.erethon.daedalus.customentity.core.Bone;
 import de.erethon.daedalus.customentity.core.RegisterModelEntity;
@@ -11,7 +12,6 @@ import de.erethon.daedalus.customentity.core.components.InteractionComponent;
 import de.erethon.daedalus.dataconverter.BoneBlueprint;
 import de.erethon.daedalus.dataconverter.FileModelConverter;
 import de.erethon.daedalus.dataconverter.SkeletonBlueprint;
-import de.erethon.bedrock.chat.MessageUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -59,13 +59,13 @@ public class ModeledEntity {
 
         FileModelConverter fileModelConverter = FileModelConverter.getConvertedFileModels().get(entityID);
         if (fileModelConverter == null) {
-            MessageUtil.log("Failed to initialize ModeledEntity: FileModelConverter not found for entityID: " + entityID);
+            Daedalus.log("Failed to initialize ModeledEntity: FileModelConverter not found for entityID: " + entityID);
             return;
         }
 
         skeletonBlueprint = fileModelConverter.getSkeletonBlueprint();
         if (skeletonBlueprint == null) {
-            MessageUtil.log("Failed to initialize ModeledEntity: SkeletonBlueprint not found for entityID: " + entityID);
+            Daedalus.log("Failed to initialize ModeledEntity: SkeletonBlueprint not found for entityID: " + entityID);
             return;
         }
 
