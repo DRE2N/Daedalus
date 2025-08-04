@@ -39,13 +39,19 @@ public class CubeBlueprint {
         processFace(projectResolution, (Map<String, Object>) cubeJSON.get("faces"), "down", modelName);
 
         ArrayList<Double> fromList = (ArrayList<Double>) cubeJSON.get("from");
-        if (fromList == null) return;
+        if (fromList == null) {
+            MessageUtil.log("Cube " + cubeJSON.get("name") + " in model " + modelName + " does not have a 'from' property. This cube will not be processed correctly.");
+            return;
+        }
         from = new Vector3f(
                 MathToolkit.roundFourDecimalPlaces(fromList.get(0).floatValue() * BoneBlueprint.ARMOR_STAND_HEAD_SIZE_MULTIPLIER),
                 MathToolkit.roundFourDecimalPlaces(fromList.get(1).floatValue() * BoneBlueprint.ARMOR_STAND_HEAD_SIZE_MULTIPLIER),
                 MathToolkit.roundFourDecimalPlaces(fromList.get(2).floatValue() * BoneBlueprint.ARMOR_STAND_HEAD_SIZE_MULTIPLIER));
         ArrayList<Double> toList = (ArrayList<Double>) cubeJSON.get("to");
-        if (toList == null) return;
+        if (toList == null) {
+            MessageUtil.log("Cube " + cubeJSON.get("name") + " in model " + modelName + " does not have a 'to' property. This cube will not be processed correctly.");
+            return;
+        }
         to = new Vector3f(
                 MathToolkit.roundFourDecimalPlaces(toList.get(0).floatValue() * BoneBlueprint.ARMOR_STAND_HEAD_SIZE_MULTIPLIER),
                 MathToolkit.roundFourDecimalPlaces(toList.get(1).floatValue() * BoneBlueprint.ARMOR_STAND_HEAD_SIZE_MULTIPLIER),
@@ -59,22 +65,37 @@ public class CubeBlueprint {
 
     private void setTextureData(double projectResolution, Map<String, Object> map, String modelName) {
         if (map == null || map.get("texture") == null) {
-            if (textureDataExists != null && textureDataExists)
+            if (textureDataExists != null && textureDataExists) {
                 MessageUtil.log("A cube in the model " + modelName + " has a face which does not have a texture while the rest of the cube has a texture. Minecraft does not allow this. Go through every cube in that model and make sure they all either have or do not have textures on all faces, but don't mix having and not having textures for the same cube. The model will appear with the debug black and purple cube texture until fixed.");
+            }
             textureDataExists = false;
+            MessageUtil.log("Cube " + getCubeName() + " in model " + modelName + " does not have a texture for face. This is allowed, but the cube will appear with the debug black and purple cube texture until fixed.");
             return;
         }
         if (textureDataExists != null && !textureDataExists)
             MessageUtil.log("A cube in the model " + modelName + " has a face which does not have a texture while the rest of the cube has a texture. Minecraft does not allow this. Go through every cube in that model and make sure they all either have or do not have textures on all faces, but don't mix having and not having textures for the same cube. The model will appear with the debug black and purple cube texture until fixed.");
         textureDataExists = true;
+
         Double textureDouble = (Double) map.get("texture");
         int textureValue = (int) Math.round(textureDouble);
         map.put("texture", "#" + textureValue);
         map.put("tintindex", 0);
         map.putIfAbsent("rotation", 0);
         ArrayList<Double> originalUV = (ArrayList<Double>) map.get("uv");
-        //For some reason Minecraft really wants images to be 16x16 so here we scale the UV to fit that
-        double uvMultiplier = 16 / projectResolution;
+
+        // Minecraft's UV coordinate system is based on a 16x16 grid that represents the *entire* texture,
+        // regardless of the texture's actual pixel dimensions. Blockbench, however, provides UVs in
+        // absolute pixel coordinates based on the texture's resolution.
+        //
+        // This calculation converts the pixel-based UVs from Blockbench to Minecraft's 16-unit system.
+        // 'projectResolution' MUST be the width/height of the texture file (e.g., 64, 128, 256).
+        // If the UVs are unexpectedly large or the texture atlas is visible, we are likely passing an incorrect projectResolution (e.g. default 8).
+        if (projectResolution <= 0) {
+            MessageUtil.log("Error: Invalid project resolution (" + projectResolution + ") for model " + modelName + ". Defaulting to 16, but UVs will likely be incorrect.");
+            projectResolution = 16.0;
+        }
+        double uvMultiplier = 16.0 / projectResolution;
+
         map.put("uv", List.of(
                 MathToolkit.roundFourDecimalPlaces(originalUV.get(0) * uvMultiplier),
                 MathToolkit.roundFourDecimalPlaces(originalUV.get(1) * uvMultiplier),
@@ -90,7 +111,10 @@ public class CubeBlueprint {
     }
 
     public void shiftRotation() {
-        if (cubeJSON.get("origin") == null) return;
+        if (cubeJSON.get("origin") == null) {
+            MessageUtil.log("Cube " + getCubeName() + " in model " + cubeJSON.get("model") + " does not have an 'origin' property. Cannot shift rotation.");
+            return;
+        }
         Map<String, Object> newRotationData = new HashMap<>();
 
         double scaleFactor = 0.4;
@@ -107,7 +131,6 @@ public class CubeBlueprint {
 
         if (cubeJSON.get("rotation") instanceof List) {
             List<Double> rotations = (List<Double>) cubeJSON.get("rotation");
-            // Your logic for finding the single rotation axis seems correct for your data source.
             for (int i = rotations.size() - 1; i >= 0; i--) {
                 if (rotations.get(i) != 0) {
                     angle =  MathToolkit.roundFourDecimalPlaces(rotations.get(i));
@@ -143,7 +166,6 @@ public class CubeBlueprint {
 
     private RotationDecomposition decomposeRotation(double angle) {
         RotationDecomposition result = new RotationDecomposition();
-        // This mathematical approach is robust and correct.
         double baseRotation = Math.round(angle / 90.0) * 90.0;
         double remainder = angle - baseRotation;
 
@@ -166,191 +188,108 @@ public class CubeBlueprint {
      * - 135° on Y -> 90° (geometry transform) + 45° (native rotation)
      */
     private void transformCubeGeometry(double angle, String axis, double originX, double originY, double originZ) {
-        if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) {
-            float fromX = from.x, fromY = from.y, fromZ = from.z;
-            float toX = to.x, toY = to.y, toZ = to.z;
+        float fromX = from.x, fromY = from.y, fromZ = from.z;
+        float toX = to.x, toY = to.y, toZ = to.z;
 
-            switch (axis.toLowerCase()) {
-                case "x" -> { // Pitch
-                    float newFromY = (float) (originY - (toY - originY));
-                    float newToY = (float) (originY - (fromY - originY));
-                    float newFromZ = (float) (originZ - (toZ - originZ));
-                    float newToZ = (float) (originZ - (fromZ - originZ));
-                    from.set(fromX, newFromY, newFromZ);
-                    to.set(toX, newToY, newToZ);
-                }
-                case "y" -> { // Yaw
-                    float newFromX = (float) (originX - (toX - originX));
-                    float newToX = (float) (originX - (fromX - originX));
-                    float newFromZ = (float) (originZ - (toZ - originZ));
-                    float newToZ = (float) (originZ - (fromZ - originZ));
-                    from.set(newFromX, fromY, newFromZ);
-                    to.set(newToX, toY, newToZ);
-                }
-                case "z" -> { // Roll
-                    float newFromX = (float) (originX - (toX - originX));
-                    float newToX = (float) (originX - (fromX - originX));
-                    float newFromY = (float) (originY - (toY - originY));
-                    float newToY = (float) (originY - (fromY - originY));
-                    from.set(newFromX, newFromY, fromZ);
-                    to.set(newToX, newToY, toZ);
-                }
+        Vector3f newFrom = new Vector3f();
+        Vector3f newTo = new Vector3f();
+
+        fromX -= originX; fromY -= originY; fromZ -= originZ;
+        toX -= originX; toY -= originY; toZ -= originZ;
+
+        switch (axis.toLowerCase()) {
+            case "x" -> {
+                if (Math.abs(angle - 90) < 0.01) { newFrom.set(fromX, -fromZ, fromY); newTo.set(toX, -toZ, toY); }
+                else if (Math.abs(angle + 90) < 0.01) { newFrom.set(fromX, fromZ, -fromY); newTo.set(toX, toZ, -toY); }
+                else if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) { newFrom.set(fromX, -fromY, -fromZ); newTo.set(toX, -toY, -toZ); }
             }
-        } else {
-            Vector3f newFrom = new Vector3f();
-            Vector3f newTo = new Vector3f();
-
-            float fromX = from.x - (float)originX, fromY = from.y - (float)originY, fromZ = from.z - (float)originZ;
-            float toX = to.x - (float)originX, toY = to.y - (float)originY, toZ = to.z - (float)originZ;
-
-            switch (axis.toLowerCase()) {
-                case "x" -> {
-                    if (Math.abs(angle - 90) < 0.01)      { newFrom.set(fromX, -toZ, fromY); newTo.set(toX, -fromZ, toY); }
-                    else if (Math.abs(angle + 90) < 0.01) { newFrom.set(fromX, toZ, -toY); newTo.set(toX, fromZ, -fromY); }
-                }
-                case "y" -> {
-                    if (Math.abs(angle - 90) < 0.01)      { newFrom.set(toZ, fromY, -toX); newTo.set(fromZ, toY, -fromX); }
-                    else if (Math.abs(angle + 90) < 0.01) { newFrom.set(-toZ, fromY, toX); newTo.set(-fromZ, toY, fromX); }
-                }
-                case "z" -> {
-                    if (Math.abs(angle - 90) < 0.01)      { newFrom.set(-toY, fromX, fromZ); newTo.set(-fromY, toX, toZ); }
-                    else if (Math.abs(angle + 90) < 0.01) { newFrom.set(toY, -toX, fromZ); newTo.set(fromY, -fromX, toZ); }
-                }
+            case "y" -> {
+                if (Math.abs(angle - 90) < 0.01) { newFrom.set(fromZ, fromY, -fromX); newTo.set(toZ, toY, -toX); }
+                else if (Math.abs(angle + 90) < 0.01) { newFrom.set(-fromZ, fromY, fromX); newTo.set(-toZ, toY, toX); }
+                else if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) { newFrom.set(-fromX, fromY, -fromZ); newTo.set(-toX, toY, -toZ); }
             }
-
-            newFrom.add((float)originX, (float)originY, (float)originZ);
-            newTo.add((float)originX, (float)originY, (float)originZ);
-
-            from.set(Math.min(newFrom.x, newTo.x), Math.min(newFrom.y, newTo.y), Math.min(newFrom.z, newTo.z));
-            to.set(Math.max(newFrom.x, newTo.x), Math.max(newFrom.y, newTo.y), Math.max(newFrom.z, newTo.z));
+            case "z" -> {
+                if (Math.abs(angle - 90) < 0.01) { newFrom.set(-fromY, fromX, fromZ); newTo.set(-toY, toX, toZ); }
+                else if (Math.abs(angle + 90) < 0.01) { newFrom.set(fromY, -fromX, fromZ); newTo.set(toY, -toX, toZ); }
+                else if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) { newFrom.set(-fromX, -fromY, fromZ); newTo.set(-toX, -toY, toZ); }
+            }
         }
 
-        cubeJSON.put("from", List.of(from.x(), from.y(), from.z()));
-        cubeJSON.put("to", List.of(to.x(), to.y(), to.z()));
+        newFrom.add((float)originX, (float)originY, (float)originZ);
+        newTo.add((float)originX, (float)originY, (float)originZ);
+
+        from.set(Math.min(newFrom.x, newTo.x), Math.min(newFrom.y, newTo.y), Math.min(newFrom.z, newTo.z));
+        to.set(Math.max(newFrom.x, newTo.x), Math.max(newFrom.y, newTo.y), Math.max(newFrom.z, newTo.z));
+
+        cubeJSON.put("from", List.of(from.get(0), from.get(1), from.get(2)));
+        cubeJSON.put("to", List.of(to.get(0), to.get(1), to.get(2)));
 
         remapFaces(angle, axis);
     }
 
     private void remapFaces(double angle, String axis) {
         Map<String, Object> faces = (Map<String, Object>) cubeJSON.get("faces");
-        if (faces == null) return;
+        if (faces == null) {
+            MessageUtil.log("Warning: Cube " + getCubeName() + " has no faces defined. Cannot remap faces for rotation.");
+            return;
+        }
 
         Map<String, Object> originalFaces = new HashMap<>();
         for (Map.Entry<String, Object> entry : faces.entrySet()) {
             if (entry.getValue() instanceof Map) {
                 originalFaces.put(entry.getKey(), new HashMap<>((Map<String, Object>) entry.getValue()));
+            } else {
+                originalFaces.put(entry.getKey(), entry.getValue());
             }
         }
 
-        faces.clear();
-
+        // Remapping which face is which (e.g. north becomes east)
         switch (axis.toLowerCase()) {
-            case "x" -> { // Pitch
-                if (Math.abs(angle - 90) < 0.01) {
-                    faces.put("up", originalFaces.get("north"));
-                    faces.put("south", originalFaces.get("up"));
-                    faces.put("down", originalFaces.get("south"));
-                    faces.put("north", originalFaces.get("down"));
-                    faces.put("east", originalFaces.get("east"));
-                    faces.put("west", originalFaces.get("west"));
-                    rotateFaceUV(faces, "east", -90);
-                    rotateFaceUV(faces, "west", 90);
-                } else if (Math.abs(angle + 90) < 0.01) {
-                    faces.put("down", originalFaces.get("north"));
-                    faces.put("north", originalFaces.get("up"));
-                    faces.put("up", originalFaces.get("south"));
-                    faces.put("south", originalFaces.get("down"));
-                    faces.put("east", originalFaces.get("east"));
-                    faces.put("west", originalFaces.get("west"));
-                    rotateFaceUV(faces, "east", 90);
-                    rotateFaceUV(faces, "west", -90);
+            case "x": // Pitch
+                if (Math.abs(angle - 90) < 0.01) { // Pitch up
+                    faces.put("up", originalFaces.get("north")); faces.put("south", originalFaces.get("up")); faces.put("down", originalFaces.get("south")); faces.put("north", originalFaces.get("down"));
+                    rotateFaceUV(faces, "east", 90); rotateFaceUV(faces, "west", -90);
+                } else if (Math.abs(angle + 90) < 0.01) { // Pitch down
+                    faces.put("down", originalFaces.get("north")); faces.put("north", originalFaces.get("up")); faces.put("up", originalFaces.get("south")); faces.put("south", originalFaces.get("down"));
+                    rotateFaceUV(faces, "east", -90); rotateFaceUV(faces, "west", 90);
                 } else if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) {
-                    // Correctly remap faces for a 180-degree pitch
-                    faces.put("down", originalFaces.get("north"));
-                    faces.put("up", originalFaces.get("south"));
-                    faces.put("north", originalFaces.get("down"));
-                    faces.put("south", originalFaces.get("up"));
-                    faces.put("east", originalFaces.get("east"));
-                    faces.put("west", originalFaces.get("west"));
-
-                    // The original up/down faces are now south/north. Their inherent UV is likely correct.
-                    // East and west, however, are now upside-down and need to be spun.
-                    rotateFaceUV(faces, "east", 180);
-                    rotateFaceUV(faces, "west", 180);
+                    faces.put("south", originalFaces.get("north")); faces.put("north", originalFaces.get("south")); faces.put("down", originalFaces.get("up")); faces.put("up", originalFaces.get("down"));
+                    rotateFaceUV(faces, "east", 180); rotateFaceUV(faces, "west", 180);
                 }
-            }
-            case "y" -> { // Yaw
-                if (Math.abs(angle - 90) < 0.01) {
-                    faces.put("east", originalFaces.get("north"));
-                    faces.put("south", originalFaces.get("east"));
-                    faces.put("west", originalFaces.get("south"));
-                    faces.put("north", originalFaces.get("west"));
-                    faces.put("up", originalFaces.get("up"));
-                    faces.put("down", originalFaces.get("down"));
-                    rotateFaceUV(faces, "up", 90);
-                    rotateFaceUV(faces, "down", -90);
-                } else if (Math.abs(angle + 90) < 0.01) {
-                    faces.put("west", originalFaces.get("north"));
-                    faces.put("north", originalFaces.get("east"));
-                    faces.put("east", originalFaces.get("south"));
-                    faces.put("south", originalFaces.get("west"));
-                    faces.put("up", originalFaces.get("up"));
-                    faces.put("down", originalFaces.get("down"));
-                    rotateFaceUV(faces, "up", -90);
-                    rotateFaceUV(faces, "down", 90);
+                break;
+            case "y": // Yaw
+                if (Math.abs(angle - 90) < 0.01) { // Yaw left (CCW)
+                    faces.put("west", originalFaces.get("north")); faces.put("north", originalFaces.get("east")); faces.put("east", originalFaces.get("south")); faces.put("south", originalFaces.get("west"));
+                    rotateFaceUV(faces, "up", -90); rotateFaceUV(faces, "down", 90);
+                } else if (Math.abs(angle + 90) < 0.01) { // Yaw right (CW)
+                    faces.put("east", originalFaces.get("north")); faces.put("south", originalFaces.get("east")); faces.put("west", originalFaces.get("south")); faces.put("north", originalFaces.get("west"));
+                    rotateFaceUV(faces, "up", 90); rotateFaceUV(faces, "down", -90);
                 } else if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) {
-                    faces.put("south", originalFaces.get("north"));
-                    faces.put("north", originalFaces.get("south"));
-                    faces.put("west", originalFaces.get("east"));
-                    faces.put("east", originalFaces.get("west"));
-                    faces.put("up", originalFaces.get("up"));
-                    faces.put("down", originalFaces.get("down"));
-                    // In a 180 yaw, up/down are still up/down but need their UVs rotated.
-                    rotateFaceUV(faces, "up", 180);
-                    rotateFaceUV(faces, "down", 180);
+                    faces.put("south", originalFaces.get("north")); faces.put("north", originalFaces.get("south")); faces.put("west", originalFaces.get("east")); faces.put("east", originalFaces.get("west"));
+                    rotateFaceUV(faces, "up", 180); rotateFaceUV(faces, "down", 180);
                 }
-            }
-            case "z" -> { // Roll
-                if (Math.abs(angle - 90) < 0.01) {
-                    faces.put("up", originalFaces.get("west"));
-                    faces.put("east", originalFaces.get("up"));
-                    faces.put("down", originalFaces.get("east"));
-                    faces.put("west", originalFaces.get("down"));
-                    faces.put("north", originalFaces.get("north"));
-                    faces.put("south", originalFaces.get("south"));
-                    rotateFaceUV(faces, "north", 90);
-                    rotateFaceUV(faces, "south", -90);
-                } else if (Math.abs(angle + 90) < 0.01) {
-                    faces.put("up", originalFaces.get("east"));
-                    faces.put("west", originalFaces.get("up"));
-                    faces.put("down", originalFaces.get("west"));
-                    faces.put("east", originalFaces.get("down"));
-                    faces.put("north", originalFaces.get("north"));
-                    faces.put("south", originalFaces.get("south"));
-                    rotateFaceUV(faces, "north", -90);
-                    rotateFaceUV(faces, "south", 90);
+                break;
+            case "z": // Roll
+                if (Math.abs(angle - 90) < 0.01) { // Roll right
+                    faces.put("east", originalFaces.get("up")); faces.put("down", originalFaces.get("east")); faces.put("west", originalFaces.get("down")); faces.put("up", originalFaces.get("west"));
+                    rotateFaceUV(faces, "north", 90); rotateFaceUV(faces, "south", -90);
+                } else if (Math.abs(angle + 90) < 0.01) { // Roll left
+                    faces.put("west", originalFaces.get("up")); faces.put("up", originalFaces.get("east")); faces.put("east", originalFaces.get("down")); faces.put("down", originalFaces.get("west"));
+                    rotateFaceUV(faces, "north", -90); rotateFaceUV(faces, "south", 90);
                 } else if (Math.abs(angle - 180) < 0.01 || Math.abs(angle + 180) < 0.01) {
-                    faces.put("down", originalFaces.get("up"));
-                    faces.put("up", originalFaces.get("down"));
-                    faces.put("west", originalFaces.get("east"));
-                    faces.put("east", originalFaces.get("west"));
-                    faces.put("north", originalFaces.get("north"));
-                    faces.put("south", originalFaces.get("south"));
-
+                    faces.put("down", originalFaces.get("up")); faces.put("up", originalFaces.get("down")); faces.put("west", originalFaces.get("east")); faces.put("east", originalFaces.get("west"));
+                    rotateFaceUV(faces, "north", 180); rotateFaceUV(faces, "south", 180);
                 }
-            }
-        }
-
-        for(String faceName : new String[]{"north", "east", "south", "west", "up", "down"}){
-            if(!faces.containsKey(faceName) && originalFaces.containsKey(faceName)){
-                faces.put(faceName, originalFaces.get(faceName));
-            }
+                break;
         }
     }
 
     private void rotateFaceUV(Map<String, Object> faces, String faceName, double additionalRotation) {
         Map<String, Object> face = (Map<String, Object>) faces.get(faceName);
-        if (face == null) return;
+        if (face == null) {
+            MessageUtil.log("Warning: Face " + faceName + " does not exist in cube " + getCubeName() + ". Cannot apply UV rotation.");
+            return;
+        }
 
         // Get the current rotation of the face, defaulting to 0.
         int currentRotation = 0;
