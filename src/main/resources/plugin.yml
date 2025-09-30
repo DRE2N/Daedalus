@@ -1,7 +1,7 @@
 name: Daedalus
 version: 1.1
-main: de.erethon.daedalus.Daedalus
-api-version: '1.21.7'
+main: com.magmaguy.freeminecraftmodels.Daedalus
+api-version: '1.21.8'
 commands:
     daedalus:
         description: Daedalus plugin command
