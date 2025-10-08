@@ -1,0 +1,18 @@
+# Daedalus Configuration File
+
+# Additional directory to copy the resource pack to (e.g., your Minecraft client's resourcepacks folder)
+# Leave empty to disable. Example: C:\Users\YourName\AppData\Roaming\.minecraft\resourcepacks
+additionalOutputDirectory: ""
+
+# Maximum distance in blocks at which models are visible
+maxModelViewDistance: 512
+
+# Maximum distance for interaction and attack detection on living entities
+maxInteractionAndAttackDistanceForLivingEntities: 64
+
+# Maximum distance for interaction and attack detection on props
+maxInteractionAndAttackDistanceForProps: 64
+
+# Whether to send custom models to Bedrock clients
+sendCustomModelsToBedrockClients: false
+

@@ -33,16 +33,33 @@ public class OBBHitDetection implements Listener {
     private static HashSet<Projectile> activeProjectiles = new HashSet<>();
     private static BukkitTask projectileDetectionTask = null;
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    /*@EventHandler(priority = EventPriority.LOWEST)
     public void EntityDamageByEntityEvent(EntityDamageByEntityEvent event) {
-        if (!RegisterModelEntity.isModelEntity(event.getEntity()) &&
-                !RegisterModelEntity.isModelEntity(event.getDamager())) return;
+        // Check if either the entity being damaged or the damager is a model entity
+        boolean entityIsModel = RegisterModelEntity.isModelEntity(event.getEntity());
+        boolean damagerIsModel = RegisterModelEntity.isModelEntity(event.getDamager());
+
+        // If neither is a model entity, ignore this event
+        if (!entityIsModel && !damagerIsModel) return;
+
+        // If applyDamage flag is set, allow the damage and reset the flag
         if (applyDamage) {
             applyDamage = false;
             return;
         }
-        event.setCancelled(true);
-    }
+
+        // If the damager is a model entity (attacking something), cancel it
+        // This prevents ModeledEntities from damaging things without proper handling
+        if (damagerIsModel) {
+            event.setCancelled(true);
+            return;
+        }
+
+        // If we get here, the entity being damaged is a model entity, but the damager is not
+        // This means external damage (like AoE, environment, other mobs) is being applied
+        // We should allow this damage to go through
+        // The event will NOT be cancelled, allowing the damage to apply normally
+    }*/
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void blockBreakEvent(BlockBreakEvent event) {

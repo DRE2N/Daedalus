@@ -32,9 +32,34 @@ public class OutputFolder {
     }
 
     public static void zipResourcePack() {
+        String outputPath = MetadataHandler.PLUGIN.getDataFolder().getAbsolutePath() + File.separatorChar + "output";
         ZipFile.zip(
-                new File(MetadataHandler.PLUGIN.getDataFolder().getAbsolutePath() + File.separatorChar + "output" + File.separatorChar + "Daedalus"),
-                MetadataHandler.PLUGIN.getDataFolder().getAbsolutePath() + File.separatorChar + "output" + File.separatorChar + "Daedalus.zip");
+                new File(outputPath + File.separatorChar + "Daedalus"),
+                outputPath + File.separatorChar + "Daedalus.zip");
+
+        // Copy to additional directory if configured
+        if (!DefaultConfig.additionalOutputDirectory.isEmpty()) {
+            try {
+                File additionalDir = new File(DefaultConfig.additionalOutputDirectory);
+                if (!additionalDir.exists()) {
+                    additionalDir.mkdirs();
+                }
+                File sourceFolder = new File(outputPath + File.separatorChar + "Daedalus");
+                File destinationFolder = new File(additionalDir, "Daedalus");
+
+                // Delete existing folder if it exists
+                if (destinationFolder.exists()) {
+                    FileUtils.deleteDirectory(destinationFolder);
+                }
+
+                // Copy the entire folder
+                FileUtils.copyDirectory(sourceFolder, destinationFolder);
+                Daedalus.log("Resource pack folder copied to: " + destinationFolder.getAbsolutePath());
+            } catch (Exception e) {
+                Daedalus.log("Failed to copy resource pack folder to additional directory: " + DefaultConfig.additionalOutputDirectory);
+                e.printStackTrace();
+            }
+        }
     }
 
     private static void generateFileFromResources(String filename, String destination) {

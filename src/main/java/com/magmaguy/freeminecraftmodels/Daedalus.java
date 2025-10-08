@@ -1,5 +1,6 @@
 package com.magmaguy.freeminecraftmodels;
 
+import com.magmaguy.freeminecraftmodels.config.DefaultConfig;
 import com.magmaguy.freeminecraftmodels.config.ModelsFolder;
 import com.magmaguy.freeminecraftmodels.config.OutputFolder;
 import com.magmaguy.freeminecraftmodels.customentity.DynamicEntity;
@@ -36,11 +37,17 @@ public final class Daedalus extends EPlugin implements Listener, CommandExecutor
     }
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        plugin = this;
+    }
+
+    @Override
     public void onEnable() {
         super.onEnable();
-        plugin = this;
         MetadataHandler.PLUGIN = this;
         //Initialize plugin configuration files
+        DefaultConfig.initializeConfig();
         OutputFolder.initializeConfig();
         ModelsFolder.initializeConfig();
         Bukkit.getPluginManager().registerEvents(new ModeledEntityEvents(), this);
@@ -53,7 +60,6 @@ public final class Daedalus extends EPlugin implements Listener, CommandExecutor
         OutputFolder.zipResourcePack();
 
         ModeledEntitiesClock.start();
-
         PropEntity.onStartup();
         OBBHitDetection.startProjectileDetection();
         getCommand("daedalus").setExecutor(this);
@@ -96,7 +102,7 @@ public final class Daedalus extends EPlugin implements Listener, CommandExecutor
                     modeledEntity.setScaleModifier(scale);
                     if (animationInput != null) {
                         if (modeledEntity.hasAnimation(animationInput)) {
-                            modeledEntity.playAnimation(animationInput, false, true);
+                            modeledEntity.playAnimation(animationInput, false, false);
                             Daedalus.log("Playing animation " + animationInput + " on model " + modelId);
                         } else {
                             MessageUtil.sendMessage(player, "Model " + modelId + " has no animation named " + animationInput);
@@ -137,6 +143,7 @@ public final class Daedalus extends EPlugin implements Listener, CommandExecutor
             return true;
         }
         if (args[0].equalsIgnoreCase("reload")) {
+            DefaultConfig.initializeConfig();
             OutputFolder.initializeConfig();
             ModelsFolder.initializeConfig();
             OutputFolder.zipResourcePack();

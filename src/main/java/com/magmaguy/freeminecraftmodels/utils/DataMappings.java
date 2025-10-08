@@ -10,6 +10,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Avatar;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -77,7 +78,7 @@ public class DataMappings {
         try {
             Player player = new ServerPlayer(MinecraftServer.getServer(), (ServerLevel) level, new GameProfile(UUID.randomUUID(), "MappingsGenerator"), ClientInformation.createDefault());
             ENTITY_DATA_MAPPINGS.put(EntityType.PLAYER, player);
-            Map<String, EntityDataAccessor<?>> dataAccessors = new HashMap<>();
+            Map<String, EntityDataAccessor<?>> playerDataAccessors = new HashMap<>();
             // its Player class, not the ServerPlayer class
             for (Field declaredField : player.getClass().getSuperclass().getDeclaredFields()) {
                 if (!declaredField.getName().startsWith("DATA_")) {
@@ -89,9 +90,9 @@ public class DataMappings {
                         continue;
                     }
                     EntityDataAccessor<?> accessor = (EntityDataAccessor<?>) declaredField.get(player);
-                    dataAccessors.put(declaredField.getName(), accessor);
+                    playerDataAccessors.put(declaredField.getName(), accessor);
                     if (accessor != null) {
-                        Daedalus.log("[DataMappings] Found data accessor " + declaredField.getName() + " for  Player");
+                        Daedalus.log("[DataMappings] Found data accessor " + declaredField.getName() + " for Player");
                     } else {
                         Daedalus.log("[DataMappings] Found null data accessor " + declaredField.getName() + " for Player");
                     }
@@ -100,8 +101,32 @@ public class DataMappings {
                     e.printStackTrace();
                 }
             }
-            DATA_ACCESSOR_MAPPINGS.put(player.getClass(), dataAccessors);
-            Daedalus.log("[Models] Found data accessor for Player base: " + dataAccessors.size());
+            DATA_ACCESSOR_MAPPINGS.put(player.getClass(), playerDataAccessors);
+            Daedalus.log("[Models] Found data accessor for Player base: " + playerDataAccessors.size());
+            // ServerPlayer -> Player -> Avatar -> LivingEntity
+            Map<String, EntityDataAccessor<?>> avatarDataAccessors = new HashMap<>();
+            for (Field declaredField : player.getClass().getSuperclass().getSuperclass().getDeclaredFields()) {
+                if (!declaredField.getName().startsWith("DATA_")) {
+                    continue;
+                }
+                try {
+                    declaredField.setAccessible(true);
+                    if (declaredField.getType() != EntityDataAccessor.class) {
+                        continue;
+                    }
+                    EntityDataAccessor<?> accessor = (EntityDataAccessor<?>) declaredField.get(player);
+                    avatarDataAccessors.put(declaredField.getName(), accessor);
+                    if (accessor != null) {
+                        Daedalus.log("[DataMappings] Found data accessor " + declaredField.getName() + " for Avatar");
+                    } else {
+                        Daedalus.log("[DataMappings] Found null data accessor " + declaredField.getName() + " for Avatar");
+                    }
+                } catch (IllegalAccessException e) {
+                    Daedalus.log("[DataMappings] Failed to access data accessor field " + declaredField.getName() + " for entity Avatar");
+                    e.printStackTrace();
+                }
+            }
+            DATA_ACCESSOR_MAPPINGS.put(Avatar.class, avatarDataAccessors);
         }
         catch (Exception e) {
             e.printStackTrace();

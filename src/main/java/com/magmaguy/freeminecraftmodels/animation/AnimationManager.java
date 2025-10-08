@@ -45,7 +45,7 @@ public class AnimationManager {
         if (current == null) {
             current = target;
             current.enter();
-            Daedalus.log("Entering new animation state: " + current.getClass().getSimpleName());
+            //Daedalus.log("Entering new animation state: " + current.getClass().getSimpleName());
             return;
         }
         current.exit();
@@ -54,7 +54,7 @@ public class AnimationManager {
         }
         current = target;
         current.enter();
-        Daedalus.log("Transitioning to " + current.getClass().getSimpleName());
+        //Daedalus.log("Transitioning to " + current.getClass().getSimpleName());
     }
 
     /**
@@ -97,7 +97,7 @@ public class AnimationManager {
 
         if (blendAnimation) nextQueued = custom;
         else transitionTo(custom);
-        Daedalus.log("Playing animation: " + name);
+        //Daedalus.log("Playing animation: " + name);
         return true;
     }
 

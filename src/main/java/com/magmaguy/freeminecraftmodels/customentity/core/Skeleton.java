@@ -92,8 +92,10 @@ public class Skeleton {
             tintCounter++;
 
             if (tintCounter <= 10) {
-                // ramp from red back toward white
-                int gAndB = (int) (255 / (double) tintCounter);
+                // ramp from red (255,0,0) toward white (255,255,255)
+                // At tintCounter=1: gAndB=0 -> Color(255,0,0) = red
+                // At tintCounter=10: gAndB=255 -> Color(255,255,255) = white
+                int gAndB = (int) ((tintCounter - 1) * 255.0 / 9.0);
                 Color tint = Color.fromRGB(255, gAndB, gAndB);
                 boneMap.values().forEach(b -> b.setHorseLeatherArmorColor(tint));
             } else {

@@ -47,7 +47,9 @@ public class DamageableComponent {
 
     public void damage(Entity damager, double amount) {
         if (modeledEntity.getUnderlyingEntity() instanceof LivingEntity livingEntity) {
+            OBBHitDetection.applyDamage = true;
             livingEntity.damage(amount, damager);
+            OBBHitDetection.applyDamage = false;
         } else {
             handleNonLivingEntityDamage(amount);
         }
@@ -58,7 +60,9 @@ public class DamageableComponent {
         if (modeledEntity.getUnderlyingEntity() instanceof LivingEntity livingEntity &&
                 !livingEntity.getType().equals(EntityType.ARMOR_STAND) &&
                 damager instanceof LivingEntity damagerLivingEntity) {
+            OBBHitDetection.applyDamage = true;
             damagerLivingEntity.attack(livingEntity);
+            OBBHitDetection.applyDamage = false;
         } else {
             handleNonLivingEntityDamage(1);
         }

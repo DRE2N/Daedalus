@@ -125,56 +125,101 @@ public class CubeBlueprint {
 
         if (cubeJSON.get("rotation") != null) {
             List<Double> rotations = (List<Double>) cubeJSON.get("rotation");
-            for (int i = rotations.size() - 1; i >= 0; i--) {
-                if (rotations.get(i) != 0) {
-                    angle =  MathToolkit.roundFourDecimalPlaces(rotations.get(i));
-                    switch (i) {
-                        case 0 -> axis = "x";
-                        case 1 -> axis = "y";
-                        case 2 -> axis = "z";
-                        default -> Daedalus.log("A cube rotation has an unknown axis index: " + i);
+
+            // Count non-zero rotations and find the one with largest absolute value
+            int nonZeroCount = 0;
+            double maxAbsRotation = 0;
+            int maxRotationIndex = 0;
+
+            for (int i = 0; i < rotations.size(); i++) {
+                double rotation = rotations.get(i);
+                if (rotation != 0) {
+                    nonZeroCount++;
+                    if (Math.abs(rotation) > Math.abs(maxAbsRotation)) {
+                        maxAbsRotation = rotation;
+                        maxRotationIndex = i;
                     }
                 }
             }
+
+            // Warn if multiple axes have rotations - Minecraft can only handle one axis per cube
+            if (nonZeroCount > 1) {
+                Daedalus.log("Cube in model " + cubeJSON.get("model") + " has rotations on multiple axes: [X=" + rotations.get(0) + ", Y=" + rotations.get(1) + ", Z=" + rotations.get(2) + "]. " +
+                        "Minecraft's item model format only supports single-axis rotations per cube. Using the largest rotation (" + maxAbsRotation + "° on " +
+                        (maxRotationIndex == 0 ? "X" : maxRotationIndex == 1 ? "Y" : "Z") + " axis). Consider applying these rotations at the bone level instead.");
+            }
+
+            // Use the rotation with the largest absolute value
+            if (nonZeroCount > 0) {
+                angle = maxAbsRotation;
+                switch (maxRotationIndex) {
+                    case 0 -> axis = "x";
+                    case 1 -> axis = "y";
+                    case 2 -> axis = "z";
+                    default -> Daedalus.log("A cube rotation has an unknown axis index: " + maxRotationIndex);
+                }
+
+                // Minecraft only supports cube rotations in the range [-45, 45]
+                // If the rotation is outside this range, we need to transform the geometry
+                if (Math.abs(angle) > 45) {
+                    double geometryRotation = decomposeRotation(angle);
+                    if (geometryRotation != 0) {
+                        transformCubeGeometry(geometryRotation, axis, xOrigin, yOrigin, zOrigin);
+                        angle = angle - geometryRotation;
+                    }
+                }
+
+                angle = MathToolkit.roundFourDecimalPlaces(angle);
+            }
         }
 
-        // Decompose rotation into base transform + allowed remainder
-        RotationDecomposition decomp = decomposeRotation(angle);
-
-        if (decomp.baseRotation != 0) {
-            // Transform the geometry for the base rotation
-            transformCubeGeometry(decomp.baseRotation, axis, xOrigin, yOrigin, zOrigin);
-            // Use the remainder as the actual rotation
-            newRotationData.put("angle", decomp.remainder);
-            newRotationData.put("axis", axis);
-        } else {
-            // Use normal rotation for already allowed angles
-            newRotationData.put("angle", angle);
-            newRotationData.put("axis", axis);
-        }
-
+        // Minecraft supports arbitrary rotations in the range [-45, 45]
+        newRotationData.put("angle", angle);
+        newRotationData.put("axis", axis);
         newRotationData.put("origin", List.of(xOrigin, yOrigin, zOrigin));
+
         cubeJSON.put("rotation", newRotationData);
         cubeJSON.remove("origin");
     }
 
-    private static class RotationDecomposition {
-        double baseRotation;  // 0, 90, -90, 180, or -180
-        double remainder;     // -45, -22.5, 0, 22.5, or 45
-    }
+    /**
+     * Decomposes a rotation into a geometry transformation (90° or 180°) and a remainder.
+     * Returns the geometry rotation to apply, and modifies the input angle to be the remainder.
+     *
+     * Examples:
+     * - 70° -> 90° geometry, -20° remainder
+     * - 135° -> 180° geometry, -45° remainder
+     * - -112.5° -> -90° geometry, -22.5° remainder
+     * - 40° -> 0° geometry, 40° remainder (no transformation needed)
+     */
+    private double decomposeRotation(double angle) {
+        // Normalize angle to [-180, 180]
+        while (angle > 180) angle -= 360;
+        while (angle < -180) angle += 360;
 
-    private RotationDecomposition decomposeRotation(double angle) {
-        RotationDecomposition result = new RotationDecomposition();
-        double baseRotation = Math.round(angle / 90.0) * 90.0;
-        double remainder = angle - baseRotation;
-
-        if (baseRotation == -180) {
-            baseRotation = 180;
+        // Determine the best geometry transformation
+        if (angle > 45) {
+            // Positive rotations > 45
+            if (angle <= 135) {
+                // Use 90° geometry transform
+                return 90;
+            } else {
+                // Use 180° geometry transform
+                return 180;
+            }
+        } else if (angle < -45) {
+            // Negative rotations < -45
+            if (angle >= -135) {
+                // Use -90° geometry transform
+                return -90;
+            } else {
+                // Use -180° geometry transform
+                return -180;
+            }
         }
 
-        result.baseRotation = baseRotation;
-        result.remainder = remainder;
-        return result;
+        // No geometry transformation needed
+        return 0;
     }
 
     /**
@@ -205,6 +250,10 @@ public class CubeBlueprint {
         fromX -= originX; fromY -= originY; fromZ -= originZ;
         toX -= originX; toY -= originY; toZ -= originZ;
 
+        // Initialize with original values (fallback if no transformation matches)
+        newFrom.set(fromX, fromY, fromZ);
+        newTo.set(toX, toY, toZ);
+
         // Apply rotation transformation
         switch (axis.toLowerCase()) {
             case "x" -> {
@@ -220,6 +269,9 @@ public class CubeBlueprint {
                     // 180 degrees around X: y' = -y, z' = -z
                     newFrom.set(fromX, -fromY, -fromZ);
                     newTo.set(toX, -toY, -toZ);
+                } else {
+                    // No geometry transformation matched - this shouldn't happen but prevents invisible cubes
+                    Daedalus.log("Warning: transformCubeGeometry called with angle " + angle + " on axis " + axis + " but no transformation was applied. This may indicate a bug.");
                 }
             }
             case "y" -> {
@@ -235,6 +287,8 @@ public class CubeBlueprint {
                     // 180 degrees around Y: x' = -x, z' = -z
                     newFrom.set(-fromX, fromY, -fromZ);
                     newTo.set(-toX, toY, -toZ);
+                } else {
+                    Daedalus.log("Warning: transformCubeGeometry called with angle " + angle + " on axis " + axis + " but no transformation was applied. This may indicate a bug.");
                 }
             }
             case "z" -> {
@@ -250,6 +304,8 @@ public class CubeBlueprint {
                     // 180 degrees around Z: x' = -x, y' = -y
                     newFrom.set(-fromX, -fromY, fromZ);
                     newTo.set(-toX, -toY, toZ);
+                } else {
+                    Daedalus.log("Warning: transformCubeGeometry called with angle " + angle + " on axis " + axis + " but no transformation was applied. This may indicate a bug.");
                 }
             }
         }
@@ -452,3 +508,4 @@ public class CubeBlueprint {
         return (String) cubeJSON.get("name");
     }
 }
+

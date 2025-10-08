@@ -164,23 +164,46 @@ public class TransformationMatrix {
      * @return [x, y, z]
      */
     public double[] getRotation() {
-        // Assuming the rotation matrix is "pure" (no scaling) and follows XYZ order
         double[] rotation = new double[3];
 
-        // Yaw (rotation around Y axis)
-        rotation[1] = Math.atan2(-matrix[2][0], Math.sqrt(matrix[0][0] * matrix[0][0] + matrix[1][0] * matrix[1][0]));
+        // First, extract the scale factors to normalize the rotation matrix
+        double scaleX = Math.sqrt(matrix[0][0] * matrix[0][0] + matrix[1][0] * matrix[1][0] + matrix[2][0] * matrix[2][0]);
+        double scaleY = Math.sqrt(matrix[0][1] * matrix[0][1] + matrix[1][1] * matrix[1][1] + matrix[2][1] * matrix[2][1]);
+        double scaleZ = Math.sqrt(matrix[0][2] * matrix[0][2] + matrix[1][2] * matrix[1][2] + matrix[2][2] * matrix[2][2]);
 
-        // As a special case, if cos(yaw) is close to 0, use an alternative calculation
-        if (Math.abs(matrix[2][0]) < 1e-6 && Math.abs(matrix[2][2]) < 1e-6) {
-            // Pitch (rotation around X axis)
-            rotation[0] = Math.atan2(matrix[1][2], matrix[1][1]);
-            // Roll (rotation around Z axis) is indeterminate: set to 0 or use previous value
-            rotation[2] = 0;
+        // Avoid division by zero - if scale is zero, there's no rotation to extract
+        if (scaleX < 1e-10 || scaleY < 1e-10 || scaleZ < 1e-10) {
+            return new double[]{0, 0, 0};
+        }
+
+        // Normalize the matrix elements by dividing by scale to get pure rotation
+        double m00 = matrix[0][0] / scaleX;
+        double m01 = matrix[0][1] / scaleY;
+        double m02 = matrix[0][2] / scaleZ;
+        double m10 = matrix[1][0] / scaleX;
+        double m11 = matrix[1][1] / scaleY;
+        double m12 = matrix[1][2] / scaleZ;
+        double m20 = matrix[2][0] / scaleX;
+        double m21 = matrix[2][1] / scaleY;
+        double m22 = matrix[2][2] / scaleZ;
+
+        // Extract rotations in ZYX order (matching how rotations are applied)
+        // This assumes rotations are applied as: rotateZ, then rotateY, then rotateX
+
+        // Check for gimbal lock with a more appropriate threshold
+        double sinY = -m20;
+
+        // Gimbal lock occurs when sinY is close to ±1
+        if (Math.abs(sinY) >= 0.99999) {
+            // Gimbal lock case
+            rotation[1] = Math.asin(Math.max(-1.0, Math.min(1.0, sinY))); // Y rotation (yaw)
+            rotation[0] = Math.atan2(-m12, m11); // X rotation (pitch)
+            rotation[2] = 0; // Z rotation (roll) - set to zero in gimbal lock
         } else {
-            // Pitch (rotation around X axis)
-            rotation[0] = Math.atan2(matrix[2][1], matrix[2][2]);
-            // Roll (rotation around Z axis)
-            rotation[2] = Math.atan2(matrix[1][0], matrix[0][0]);
+            // Normal case
+            rotation[1] = Math.asin(Math.max(-1.0, Math.min(1.0, sinY))); // Y rotation (yaw)
+            rotation[0] = Math.atan2(m21, m22); // X rotation (pitch)
+            rotation[2] = Math.atan2(m10, m00); // Z rotation (roll)
         }
 
         return rotation; // Returns rotations in radians
