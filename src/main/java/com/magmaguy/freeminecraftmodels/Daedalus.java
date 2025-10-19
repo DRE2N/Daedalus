@@ -8,6 +8,7 @@ import com.magmaguy.freeminecraftmodels.customentity.ModeledEntitiesClock;
 import com.magmaguy.freeminecraftmodels.customentity.ModeledEntity;
 import com.magmaguy.freeminecraftmodels.customentity.ModeledEntityEvents;
 import com.magmaguy.freeminecraftmodels.customentity.PropEntity;
+import com.magmaguy.freeminecraftmodels.customentity.VFXEntity;
 import com.magmaguy.freeminecraftmodels.customentity.core.OBBHitDetection;
 import com.magmaguy.freeminecraftmodels.customentity.core.components.InteractionComponent;
 import com.magmaguy.freeminecraftmodels.dataconverter.FileModelConverter;
@@ -22,6 +23,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -115,6 +117,55 @@ public final class Daedalus extends EPlugin implements Listener, CommandExecutor
                 }
             }
             MessageUtil.sendMessage(player, "You have spawned a new model.");
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("spawnprop")) {
+            Location spawnLocation = player.getTargetBlockExact(32).getLocation().add(0.5, 1, 0.5);
+            spawnLocation.setPitch(0);
+            spawnLocation.setYaw(player.getLocation().getYaw());
+            String modelId = args.length > 1 ? args[1] : "default_model";
+            try {
+                PropEntity propEntity = PropEntity.spawnPropEntity(modelId, spawnLocation);
+                propEntity.spawn();
+                MessageUtil.sendMessage(player, "You have spawned a prop entity.");
+            } catch (Exception e) {
+                MessageUtil.sendMessage(player, "Error spawning prop: " + e.getMessage());
+                e.printStackTrace();
+                return true;
+            }
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("mountskill")) {
+            String modelId = args.length > 1 ? args[1] : "default_model";
+            String animationInput = args.length > 2 ? args[2] : null;
+            LivingEntity mountTarget = (LivingEntity) player.getTargetEntity(32);
+            if (mountTarget == null) {
+                mountTarget = player;
+            }
+            try {
+                VFXEntity VFXEntity = com.magmaguy.freeminecraftmodels.customentity.VFXEntity.createMounted(modelId, mountTarget);
+
+                if (VFXEntity == null) {
+                    MessageUtil.sendMessage(player, "Failed to spawn skill entity - model not found.");
+                    return true;
+                }
+
+                MessageUtil.sendMessage(player, "You have mounted skill entity '" + modelId + "' on yourself.");
+
+                // Play animation if specified
+                if (animationInput != null) {
+                    if (VFXEntity.hasAnimation(animationInput)) {
+                        VFXEntity.playAnimation(animationInput, false, true);
+                        Daedalus.log("Playing animation " + animationInput + " on mounted skill entity " + modelId);
+                    } else {
+                        MessageUtil.sendMessage(player, "Model " + modelId + " has no animation named " + animationInput);
+                    }
+                }
+            } catch (Exception e) {
+                MessageUtil.sendMessage(player, "Error mounting skill entity: " + e.getMessage());
+                e.printStackTrace();
+                return true;
+            }
             return true;
         }
         if (args[0].equalsIgnoreCase("status")) {

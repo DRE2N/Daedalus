@@ -17,6 +17,7 @@ import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -201,10 +202,14 @@ public class PropEntity extends StaticEntity {
         @EventHandler
         private void onChunkUnloadEvent(ChunkUnloadEvent event) {
             String chunkHash = chunkToString(event.getChunk());
+            Collection<PropEntity> entitiesToRemove = new java.util.ArrayList<>();
             for (PropEntity value : propEntities.values()) {
                 if (value.chunkHash.equals(chunkHash)) {
-                    value.remove();
+                    entitiesToRemove.add(value);
                 }
+            }
+            for (PropEntity entity : entitiesToRemove) {
+                entity.remove();
             }
         }
     }

@@ -40,4 +40,14 @@ public class PacketTextDisplayEntity extends PacketEntity {
         transformation = new Transformation(transformation.getTranslation(), quaternionf, new Vector3f(scale,scale,scale), transformation.getRightRotation());
         setTransformation(transformation);
     }
+
+    public void sendRotationAndScalePacket(Location location, EulerAngle eulerAngle, float scale) {
+        Quaternionf quaternionf = eulerToQuaternion(
+                Math.toDegrees(eulerAngle.getX()),
+                Math.toDegrees(eulerAngle.getY()),
+                Math.toDegrees(eulerAngle.getZ()));
+        Transformation transformation = getTransformation();
+        transformation = new Transformation(transformation.getTranslation(), quaternionf, new Vector3f(scale,scale,scale), transformation.getRightRotation());
+        setTransformation(transformation);
+    }
 }

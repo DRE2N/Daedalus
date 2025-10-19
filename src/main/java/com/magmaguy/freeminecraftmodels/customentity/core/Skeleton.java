@@ -29,6 +29,7 @@ public class Skeleton {
 //    private DynamicEntity dynamicEntity = null; //todo: this wasn't in use?
     private ModeledEntity modeledEntity = null;
     private Bone rootBone = null;
+    private boolean isMounted = false; // Track if bones are mounted as passengers
 
     public Skeleton(SkeletonBlueprint skeletonBlueprint, ModeledEntity modeledEntity) {
         this.skeletonBlueprint = skeletonBlueprint;
@@ -179,6 +180,14 @@ public class Skeleton {
 
     public void setCurrentHeadYaw(float currentHeadYaw) {
         this.currentHeadYaw = currentHeadYaw;
+    }
+
+    public boolean isMounted() {
+        return isMounted;
+    }
+
+    public void setMounted(boolean mounted) {
+        isMounted = mounted;
     }
 
 }

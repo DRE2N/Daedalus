@@ -18,7 +18,8 @@ public class BoneTransforms {
     private final Bone parent;
     private final Bone bone;
     private final TransformationMatrix localMatrix = new TransformationMatrix();
-    private TransformationMatrix globalMatrix = new TransformationMatrix();
+    private final TransformationMatrix globalMatrix = new TransformationMatrix();
+    private final TransformationMatrix globalMatrixNoYaw = new TransformationMatrix(); // For mounted entities
     private PacketArmorStand packetArmorStandEntity = null;
     private PacketBoneEntity packetDisplayEntity = null;
     private PacketTextDisplayEntity packetTextDisplayEntity = null;
@@ -45,9 +46,11 @@ public class BoneTransforms {
     public void updateGlobalTransform() {
         if (parent != null) {
             TransformationMatrix.multiplyMatrices(parent.getBoneTransforms().globalMatrix, localMatrix, globalMatrix);
+            if (bone.getSkeleton().isMounted()) {
+                TransformationMatrix.multiplyMatrices(parent.getBoneTransforms().globalMatrixNoYaw, getLocalMatrixNoYaw(), globalMatrixNoYaw);
+            }
             if (bone.getBoneBlueprint().isHead()) {
-                // Store the inherited scale before resetting
-                double[] inheritedScale = globalMatrix.getScale(); // or however you access scale in your matrix
+                double[] inheritedScale = globalMatrix.getScale();
 
                 globalMatrix.resetRotation();
                 float yaw = -bone.getSkeleton().getCurrentHeadYaw() + 180;
@@ -56,10 +59,68 @@ public class BoneTransforms {
 
                 // Reapply the inherited scale
                 globalMatrix.scale(inheritedScale[0], inheritedScale[1], inheritedScale[2]);
+
+                if (bone.getSkeleton().isMounted()) {
+                    // Do the same for the no-yaw matrix
+                    double[] inheritedScaleNoYaw = globalMatrixNoYaw.getScale();
+                    globalMatrixNoYaw.resetRotation();
+                    globalMatrixNoYaw.rotateY((float) Math.toRadians(yaw));
+                    globalMatrixNoYaw.rotateX(-(float) Math.toRadians(bone.getSkeleton().getCurrentHeadPitch()));
+                    globalMatrixNoYaw.scale(inheritedScaleNoYaw[0], inheritedScaleNoYaw[1], inheritedScaleNoYaw[2]);
+                }
             }
         } else {
-            globalMatrix = localMatrix;
+            // Root bone case - copy localMatrix to globalMatrix
+            TransformationMatrix.multiplyMatrices(localMatrix, new TransformationMatrix(), globalMatrix);
+            if (bone.getSkeleton().isMounted()) {
+                // For root bone when mounted, use the no-yaw local matrix
+                TransformationMatrix.multiplyMatrices(getLocalMatrixNoYaw(), new TransformationMatrix(), globalMatrixNoYaw);
+            }
         }
+    }
+
+    private TransformationMatrix getLocalMatrixNoYaw() {
+        TransformationMatrix matrixNoYaw = new TransformationMatrix();
+        matrixNoYaw.resetToIdentityMatrix();
+
+        // Apply all the same transforms as updateLocalTransform, but skip rotateByEntityYaw
+        matrixNoYaw.translateLocal(bone.getBoneBlueprint().getBlueprintModelPivot().mul(-1, new org.joml.Vector3f()));
+
+        // translateModelCenter
+        matrixNoYaw.translateLocal(bone.getBoneBlueprint().getModelCenter());
+        if (parent != null) {
+            org.joml.Vector3f modelCenter = new org.joml.Vector3f(parent.getBoneBlueprint().getModelCenter());
+            modelCenter.mul(-1);
+            matrixNoYaw.translateLocal(modelCenter);
+        }
+
+        // translateAnimation
+        matrixNoYaw.translateLocal(
+                -bone.getAnimationTranslation().get(0),
+                bone.getAnimationTranslation().get(1),
+                bone.getAnimationTranslation().get(2));
+
+        // rotateAnimation
+        Vector test = new Vector(bone.getAnimationRotation().get(0), -bone.getAnimationRotation().get(1), -bone.getAnimationRotation().get(2));
+        test.rotateAroundY(Math.PI);
+        matrixNoYaw.rotateAnimation(
+                (float) test.getX(),
+                (float) test.getY(),
+                (float) test.getZ());
+
+        // rotateDefaultBoneRotation
+        matrixNoYaw.rotateLocal(
+                bone.getBoneBlueprint().getBlueprintOriginalBoneRotation().get(0),
+                bone.getBoneBlueprint().getBlueprintOriginalBoneRotation().get(1),
+                bone.getBoneBlueprint().getBlueprintOriginalBoneRotation().get(2));
+
+        // scaleAnimation
+        matrixNoYaw.scale(getDisplayEntityScale() / 2.5f, getDisplayEntityScale() / 2.5f, getDisplayEntityScale() / 2.5f);
+
+        matrixNoYaw.translateLocal(bone.getBoneBlueprint().getBlueprintModelPivot());
+
+
+        return matrixNoYaw;
     }
 
     public void updateLocalTransform() {
@@ -182,12 +243,13 @@ public class BoneTransforms {
         return new EulerAngle(-rotation[0], rotation[1], -rotation[2]);
     }
 
-    protected EulerAngle getArmorStandEntityRotation() {
-        double[] rotation = globalMatrix.getRotation();
-        return new EulerAngle(-rotation[0], -rotation[1], rotation[2]);
+    protected EulerAngle getDisplayEntityRotationNoYaw() {
+        double[] rotation = globalMatrixNoYaw.getRotation();
+        return new EulerAngle(-rotation[0], rotation[1], -rotation[2]);
     }
 
     public void sendUpdatePacket() {
+
         if (packetArmorStandEntity != null && packetArmorStandEntity.hasViewers()) {
             //sendArmorStandUpdatePacket(); Bedrock support would use this
         }
@@ -222,6 +284,22 @@ public class BoneTransforms {
 
     private void sendDisplayEntityUpdatePacket() {
         if (packetDisplayEntity != null) {
+            if (bone.getSkeleton().isMounted()) {
+                double[] translatedGlobalMatrix = globalMatrixNoYaw.getTranslation();
+
+                // Don't ask me why we need to negate X and Z here, but we do
+                Vector3f translation = new Vector3f(
+                        (float) -translatedGlobalMatrix[0],
+                        (float) translatedGlobalMatrix[1],
+                        (float) -translatedGlobalMatrix[2]
+                );
+
+                packetDisplayEntity.sendTranslationRotationAndScalePacket(
+                        translation,
+                        getDisplayEntityRotationNoYaw(),
+                        (float) globalMatrixNoYaw.getScale()[0] * 2.5f);
+                return;
+            }
             packetDisplayEntity.sendLocationAndRotationAndScalePacket(getDisplayEntityTargetLocation(), getDisplayEntityRotation(), (float) globalMatrix.getScale()[0] * 2.5f);
         }
     }

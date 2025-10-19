@@ -40,6 +40,7 @@ public class ModeledEntity {
     private boolean isDying = false;
     private SkeletonBlueprint skeletonBlueprint = null;
     private Skeleton skeleton;
+    private boolean markForRemoval = false;
     private boolean isRemoved = false;
     private double scaleModifier = 1.0;
     // Collision detection properties
@@ -127,6 +128,10 @@ public class ModeledEntity {
         skeleton.generateDisplays();
     }
 
+    public void setMarkForRemoval(boolean markForRemoval) {
+        this.markForRemoval = markForRemoval;
+    }
+
     public void spawn(Entity entity) {
         setUnderlyingEntity(entity);
         this.spawnLocation = entity.getLocation();
@@ -148,6 +153,10 @@ public class ModeledEntity {
 
     public void tick() {
         //cehck if the entity exists, basically
+        if (markForRemoval) {
+            remove();
+            return;
+        }
         if (isRemoved || getLocation() == null) return;
         getSkeleton().tick();
         hitboxComponent.tick(tickCounter);

@@ -49,7 +49,7 @@ public class SkeletonWatchers implements Listener {
             updateWatcherList();
             watcherUpdateCounter = 0;
         }
-        resync(false);
+        //resync(false);
     }
 
     private volatile long lastResyncTime = 0L;

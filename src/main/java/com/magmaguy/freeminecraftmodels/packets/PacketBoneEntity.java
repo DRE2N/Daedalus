@@ -77,4 +77,35 @@ public class PacketBoneEntity extends PacketEntity {
         setTransformation(transformation);
     }
 
+
+    public void sendRotationAndScalePacket(EulerAngle eulerAngle, float scale) {
+        Quaternionf quaternionf = eulerToQuaternion(
+                Math.toDegrees(eulerAngle.getX()),
+                Math.toDegrees(eulerAngle.getY()),
+                Math.toDegrees(eulerAngle.getZ()));
+        Transformation currentTrans = getTransformation();
+        Transformation transformation = new Transformation(
+                currentTrans.getTranslation(),
+                quaternionf,
+                new Vector3f(scale, scale, scale),
+                currentTrans.getRightRotation()
+        );
+        setTransformation(transformation);
+    }
+
+    public void sendTranslationRotationAndScalePacket(Vector3f translation, EulerAngle eulerAngle, float scale) {
+        Quaternionf quaternionf = eulerToQuaternion(
+                Math.toDegrees(eulerAngle.getX()),
+                Math.toDegrees(eulerAngle.getY()),
+                Math.toDegrees(eulerAngle.getZ()));
+        Transformation currentTrans = getTransformation();
+        Transformation transformation = new Transformation(
+                translation,
+                quaternionf,
+                new Vector3f(scale, scale, scale),
+                currentTrans.getRightRotation()
+        );
+        setTransformation(transformation);
+    }
+
 }
