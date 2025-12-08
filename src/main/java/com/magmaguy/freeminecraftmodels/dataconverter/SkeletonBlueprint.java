@@ -27,7 +27,9 @@ public class SkeletonBlueprint {
         for (int i = 0; i < outlinerJSON.size(); i++) {
             if (!(outlinerJSON.get(i) instanceof Map<?, ?>)) continue;
             Map<String, Object> bone = (Map<String, Object>) outlinerJSON.get(i);
-            if (((String) bone.get("name")).equalsIgnoreCase("hitbox"))
+            String boneName = (String) bone.get("name");
+            if (boneName == null) continue; // Skip bones without a name
+            if (boneName.equalsIgnoreCase("hitbox"))
                 hitbox = new HitboxBlueprint(bone, values, modelName, null);
             else {
                 BoneBlueprint boneBlueprint = new BoneBlueprint(parsedTextures, bone, values, textureReferences, modelName, rootBone, this);
