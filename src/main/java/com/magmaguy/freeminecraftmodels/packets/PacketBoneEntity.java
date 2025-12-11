@@ -3,7 +3,7 @@ package com.magmaguy.freeminecraftmodels.packets;
 import com.magmaguy.freeminecraftmodels.utils.DataAccessors;
 import com.mojang.math.Transformation;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -31,7 +31,7 @@ public class PacketBoneEntity extends PacketEntity {
         synchedEntityData.set(DataAccessors.display_heightData, 1f); // TODO: Configurable height
 
         item = new ItemStack(Items.LEATHER_HORSE_ARMOR);
-        item.set(DataComponents.ITEM_MODEL, ResourceLocation.parse(modelID));
+        item.set(DataComponents.ITEM_MODEL, Identifier.parse(modelID));
         item.set(DataComponents.DYED_COLOR,new DyedItemColor(Color.WHITE.asRGB()));
 
         synchedEntityData.set(DataAccessors.itemDisplay_itemStackData, item);

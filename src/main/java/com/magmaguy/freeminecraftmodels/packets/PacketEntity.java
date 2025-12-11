@@ -23,7 +23,9 @@ import org.bukkit.Location;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.joml.Quaternionf;
+import org.joml.Quaternionfc;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import java.util.HashSet;
 import java.util.List;
@@ -212,11 +214,11 @@ public class PacketEntity {
         setTransformation(newTransformation);
     }
 
-    public Vector3f getScale() {
+    public Vector3fc getScale() {
         return getTransformation().getScale();
     }
 
-    public Vector3f getTranslation() {
+    public Vector3fc getTranslation() {
         return getTransformation().getTranslation();
     }
 
@@ -226,7 +228,7 @@ public class PacketEntity {
         setTransformation(newTransformation);
     }
 
-    public Quaternionf getLeftRotation() {
+    public Quaternionfc getLeftRotation() {
         return getTransformation().getLeftRotation();
     }
 
@@ -236,7 +238,7 @@ public class PacketEntity {
         setTransformation(newTransformation);
     }
 
-    public Quaternionf getRightRotation() {
+    public Quaternionfc getRightRotation() {
         return getTransformation().getRightRotation();
     }
 
